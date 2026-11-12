@@ -57,7 +57,7 @@ if (matchMedia('(min-width: 761px)').matches && !/mobile=1/.test(location.search
 
   <!-- 2. One class, thirty paths -->
   <section class="slide" data-name="Our goal">
-    <div class="ring30" aria-hidden="true"><div class="r30-mid"><b>30</b><span>students<br>30 paths</span></div></div>
+    <figure class="paths"><video autoplay muted loop playsinline preload="auto" poster="../assets/posters/learning_paths.jpg" src="../assets/learning_paths.mp4" aria-label="One lesson, every child on their own path, all reaching Understood"></video></figure>
     <div class="say">
       <h2>Ahead or behind, <em>everyone moves forward.</em></h2>
       <p>Interactive lessons and quizzes that adapt, step by step, to every student.</p>
@@ -166,14 +166,6 @@ const slideIO = new IntersectionObserver((es) => es.forEach((e) => {
   dock.classList.toggle('on', k > 0 && k < slides.length - 1);
 }), { threshold: .55 });
 slides.forEach((sl) => slideIO.observe(sl));
-// 30 seats in a ring, each filled to a different point: same chapter, different progress.
-const ring = document.querySelector('.ring30');
-[72, 35, 90, 58, 15, 64, 81, 42, 27, 96, 50, 68, 8, 77, 39, 61, 88, 22, 55, 70, 33, 93, 46, 12, 84, 59, 29, 75, 66, 48].forEach((v, i) => {
-  const d = document.createElement('span');
-  d.className = 'seat' + (v < 30 ? ' w' : '');
-  d.style.cssText = `--a:${i * 12}deg;--p:${v}%;--d:${i * 45}ms`;
-  ring.appendChild(d);
-});
 // Who it's for: tap a tile, its details slide up.
 const sheet = document.querySelector('.sheet'), bodies = [...sheet.querySelectorAll('.sheet-body')];
 const openSheet = (i) => { bodies.forEach((b, j) => { b.hidden = j !== i; }); sheet.hidden = false; requestAnimationFrame(() => sheet.classList.add('open')); };
