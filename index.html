@@ -43,7 +43,7 @@ if (matchMedia('(max-width: 760px)').matches && !/desktop=1/.test(location.searc
     <div class="hero-text">
       <p class="kick">ZetaQ · Personalised learning</p>
       <h1>Thirty students. Thirty ways to learn. <em>One tutor that gets all of them.</em></h1>
-      <p class="sub">Adaptive quizzes and syllabus-aligned lessons that reshape themselves around each learner.</p>
+      <p class="sub">Interactive lessons and quizzes that adapt to each learner, step by step, chapter by chapter.</p>
       <div class="ctas">
         <a class="btn" href="tour/#enter" data-portal>Explore ZetaQ</a>
         <a class="tlink" href="tour/#videos" data-portal>Watch the video lessons <span aria-hidden="true">→</span></a>
@@ -62,16 +62,16 @@ if (matchMedia('(max-width: 760px)').matches && !/desktop=1/.test(location.searc
       <div class="goal">
         <div>
           <h2>Built for the student who's ahead, <em>and the one who's behind.</em></h2>
-          <p class="lead">Every student learns differently. Finally, so does the quiz.</p>
+          <p class="lead">Every student learns differently. Finally, so do the lessons.</p>
         </div>
         <figure class="class" id="class" aria-label="Thirty students, each at a different point in the same chapter">
           <figcaption><span>One class · 30 students</span><span>30 paths</span></figcaption>
         </figure>
       </div>
       <ol class="points">
+        <li><h3>Lessons that adapt to you</h3><p>Every interactive lesson changes as you go: a hint when you're stuck, a harder challenge when you're ready.</p></li>
         <li><h3>The quiz that learns the learner</h3><p>Each answer shapes the next question, so every student works at the right level.</p></li>
         <li><h3>Same syllabus, different journey</h3><p>Every lesson follows the chapters your class is studying, at each student's own pace.</p></li>
-        <li><h3>Teaching made personal, at classroom scale</h3><p>One-to-one attention for every student, across the whole class.</p></li>
       </ol>
     </div>
   </section>
@@ -82,53 +82,28 @@ if (matchMedia('(max-width: 760px)').matches && !/desktop=1/.test(location.searc
     <div class="sec-body">
       <h2>One platform, <em>for everyone around a learner.</em></h2>
       <p class="lead">Students, teachers, parents and schools each get exactly what they need.</p>
-      <div class="aud">
-        <article>
-          <p class="who"><svg class="ic" aria-hidden="true"><use href="#i-student"/></svg>For students</p>
-          <h3>Learn at your own pace, in your own way.</h3>
-          <ul>
+      <div class="aud2"><div class="aud-tiles" role="tablist"><button class="aud-tile" type="button" role="tab" aria-selected="true" data-i="0"><svg class="ic" aria-hidden="true"><use href="#i-student"/></svg>For students<b>Learn at your own pace, in your own way.</b></button><button class="aud-tile" type="button" role="tab" aria-selected="false" data-i="1"><svg class="ic" aria-hidden="true"><use href="#i-teacher"/></svg>For teachers<b>Reach every student, not just the front row.</b></button><button class="aud-tile" type="button" role="tab" aria-selected="false" data-i="2"><svg class="ic" aria-hidden="true"><use href="#i-parent"/></svg>For parents<b>Know how your child is learning, not just their marks.</b></button><button class="aud-tile" type="button" role="tab" aria-selected="false" data-i="3"><svg class="ic" aria-hidden="true"><use href="#i-school"/></svg>For schools<b>Personal learning for every classroom.</b></button></div><div class="aud-panel" role="tabpanel" data-i="0"><ul>
             <li>Quizzes that get harder when you're ready and easier when you're not</li>
             <li>Lessons that follow your class syllabus, chapter by chapter</li>
             <li>Practise anytime, without the fear of getting it wrong</li>
             <li>Interactive video lessons that explain every chapter step by step</li>
             <li>Lesson slides (PPTX) and summary PDFs to revise before every test</li>
-          </ul>
-          <a class="tlink" href="tour/#students" data-portal>Explore for students <span aria-hidden="true">→</span></a>
-        </article>
-        <article>
-          <p class="who"><svg class="ic" aria-hidden="true"><use href="#i-teacher"/></svg>For teachers</p>
-          <h3>Reach every student, not just the front row.</h3>
-          <ul>
+          </ul><a class="tlink" href="tour/#students" data-portal>Explore for students <span aria-hidden="true">→</span></a></div><div class="aud-panel" role="tabpanel" data-i="1" hidden><ul>
             <li>Quizzes matched to the chapters you're teaching</li>
             <li>Every student practises at their own level, in the same class</li>
             <li>Spot who needs help before the test, not after</li>
-          </ul>
-          <a class="tlink" href="tour/#teachers" data-portal>Explore for teachers <span aria-hidden="true">→</span></a>
-        </article>
-        <article>
-          <p class="who"><svg class="ic" aria-hidden="true"><use href="#i-parent"/></svg>For parents</p>
-          <h3>Know how your child is learning, not just their marks.</h3>
-          <ul>
+          </ul><a class="tlink" href="tour/#teachers" data-portal>Explore for teachers <span aria-hidden="true">→</span></a></div><div class="aud-panel" role="tabpanel" data-i="2" hidden><ul>
             <li>See which topics your child is strong in and where they need support</li>
             <li>Practice that follows the school syllabus, so homework time counts</li>
             <li>Safe, focused learning without random distractions</li>
-          </ul>
-          <a class="tlink" href="tour/#parents" data-portal>Explore for parents <span aria-hidden="true">→</span></a>
-        </article>
-        <article>
-          <p class="who"><svg class="ic" aria-hidden="true"><use href="#i-school"/></svg>For schools</p>
-          <h3>Personal learning for every classroom.</h3>
-          <ul>
+          </ul><a class="tlink" href="tour/#parents" data-portal>Explore for parents <span aria-hidden="true">→</span></a></div><div class="aud-panel" role="tabpanel" data-i="3" hidden><ul>
             <li>Adaptive quizzes and lessons aligned to your board and syllabus</li>
             <li>One platform for every class, teacher and student</li>
             <li>Built for schools and coaching centres of any size</li>
-          </ul>
-          <a class="tlink" href="tour/#schools" data-portal>Explore for schools <span aria-hidden="true">→</span></a>
-        </article>
-      </div>
+          </ul><a class="tlink" href="tour/#schools" data-portal>Explore for schools <span aria-hidden="true">→</span></a></div></div>
       <div class="hubs">
         <p class="hubs-k">Beyond the syllabus</p>
-        <ul><li><svg class="ic" aria-hidden="true"><use href="#i-curiosity"/></svg><b>Curiosity Hub</b><span>The human body, living cells and more, explored in 3D.</span></li><li><svg class="ic" aria-hidden="true"><use href="#i-engineering"/></svg><b>Engineering Lab</b><span>Build working machines, piece by piece.</span></li><li><svg class="ic" aria-hidden="true"><use href="#i-chemistry"/></svg><b>Chemistry Lab</b><span>Experiments you can run safely, again and again.</span></li><li><svg class="ic" aria-hidden="true"><use href="#i-physics"/></svg><b>Physics Lab</b><span>Bend light, wire circuits, test forces.</span></li><li><svg class="ic" aria-hidden="true"><use href="#i-observatory"/></svg><b>Virtual Observatory</b><span>Travel the solar system and watch the sky.</span></li><li><svg class="ic" aria-hidden="true"><use href="#i-creativity"/></svg><b>Creativity Hub</b><span>Build, colour and design your own creations.</span></li></ul>
+        <ul><li><svg class="ic" aria-hidden="true"><use href="#i-curiosity"/></svg><b>Curiosity Hub</b></li><li><svg class="ic" aria-hidden="true"><use href="#i-engineering"/></svg><b>Engineering Lab</b></li><li><svg class="ic" aria-hidden="true"><use href="#i-chemistry"/></svg><b>Chemistry Lab</b></li><li><svg class="ic" aria-hidden="true"><use href="#i-physics"/></svg><b>Physics Lab</b></li><li><svg class="ic" aria-hidden="true"><use href="#i-observatory"/></svg><b>Virtual Observatory</b></li><li><svg class="ic" aria-hidden="true"><use href="#i-creativity"/></svg><b>Creativity Hub</b></li></ul>
       </div>
     </div>
   </section>
@@ -165,7 +140,7 @@ if (matchMedia('(max-width: 760px)').matches && !/desktop=1/.test(location.searc
         </a>
         <a class="try-card" href="tools.html">
           <p class="who">Tools</p>
-          <h3>Two games and <em>a simulation.</em></h3>
+          <h3>Two games and <em>a 3D museum.</em></h3>
           <p>Free to play, right in your browser.</p>
           <span class="tlink">Open the tools <span aria-hidden="true">→</span></span>
         </a>
@@ -202,4 +177,9 @@ const mb = document.querySelector('.menu-btn'), nav = document.getElementById('n
 mb.addEventListener('click', () => { const o = mb.getAttribute('aria-expanded') !== 'true'; mb.setAttribute('aria-expanded', o); nav.classList.toggle('open', o); });
 </script>
 <script type="module" src="js/home.js"></script>
+<script>
+// Who it's for: one audience's points at a time.
+const at = [...document.querySelectorAll('.aud-tile')], ap = [...document.querySelectorAll('.aud-panel')];
+at.forEach((t) => t.addEventListener('click', () => { at.forEach((x) => x.setAttribute('aria-selected', x === t)); ap.forEach((p, i) => { p.hidden = i !== +t.dataset.i; }); }));
+</script>
 </body></html>
