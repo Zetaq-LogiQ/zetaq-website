@@ -256,3 +256,4 @@
 .bt-film::after { content: ""; position: absolute; inset: 0;
   background: radial-gradient(75% 70% at 50% 45%, rgba(6, 7, 26, .15), rgba(6, 7, 26, .78) 100%), linear-gradient(rgba(6, 7, 26, .55), transparent 22%, transparent 78%, rgba(6, 7, 26, .7)); }
 @media (max-width: 760px) { .bt-film video { opacity: .42; } }
+.bt-intro .bt-go { margin-top: 30px; }

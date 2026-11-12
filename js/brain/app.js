@@ -179,17 +179,16 @@ function intro() {
   net.setProgress(.04);
   const el = h(`<div class="bt-screen bt-intro">
     <p class="kick">Test your brain</p>
-    <h1>Ten questions. <em>No single right answer.</em></h1>
-    <p class="lead">Ten short challenges. Take your time and answer the way you really would.</p>
-    <ul class="bt-facts"><li><b>About 8 minutes</b><span>One question at a time</span></li><li><b>No wrong answers</b><span>Just be yourself</span></li><li><b>Your brain report</b><span>Sent to your parent at the end</span></li></ul>
-    <button class="btn bt-go" type="button" data-focus><span>Start</span><i aria-hidden="true"></i></button></div>`);
+    <h1>Every brain learns <em>differently.</em></h1>
+    <p class="lead">Get a free, quick review of how your brain learns.</p>
+    <button class="btn bt-go" type="button" data-focus><span>Take the journey</span><i aria-hidden="true"></i></button></div>`);
   el.querySelector('.btn').onclick = agePick;
   show(el);
 }
 
 function agePick() {
   net.setProgress(.08);
-  const el = h(`<div class="bt-screen bt-age"><p class="kick">First things first</p><h2>How old are you?</h2><p class="lead">Each age group gets its own ten challenges.</p>
+  const el = h(`<div class="bt-screen bt-age"><p class="kick">Before you begin</p><h2>How old are you?</h2><p class="lead">There is no right answer. Just be yourself.</p>
     <div class="bt-ages">${AGES.map((a, i) => `<button type="button" class="bt-agebtn" data-id="${a.id}" ${i ? '' : 'data-focus'}>${miniNet([6, 9, 13][i], 11 + i * 7)}<b>${a.id}</b><span>${a.label}</span><i>${a.line}</i></button>`).join('')}</div></div>`);
   el.querySelectorAll('.bt-agebtn').forEach((b) => { b.onclick = () => { S.age = b.dataset.id; S.set = SETS[S.age]; S.i = 0; S.answers = []; S.startedAt = new Date().toISOString(); question(); }; });
   show(el);
