@@ -9,7 +9,8 @@ if (location.hash && location.hash !== '#top') document.documentElement.classLis
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Inter:wght@400;500;600&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500&display=swap">
 <link rel="stylesheet" href="m.css">
 </head><body class="tour">
-<canvas class="stars fixed" aria-hidden="true"></canvas>
+<!-- The journey: stars, drifting nebulae and the glowing learning path that runs through every section -->
+<canvas class="vibe" aria-hidden="true"></canvas>
 <header class="top">
   <a class="brand" href="./" aria-label="ZetaQ home"><img src="../assets/logo.webp" alt=""><span>ZetaQ</span></a>
   <span class="spy" id="spy"></span>
@@ -32,7 +33,6 @@ if (location.hash && location.hash !== '#top') document.documentElement.classLis
   <div id="stations"></div>
 </main>
 
-<nav class="dots" aria-label="Stations on the tour"></nav>
 <div class="mnav" role="group" aria-label="Tour controls">
   <button class="prev" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
   <button class="next" type="button"><span class="nx"><small>Next</small><b class="nx-l">Students</b></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>

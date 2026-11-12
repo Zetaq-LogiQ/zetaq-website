@@ -1,6 +1,8 @@
 // The phone tour: the same sections and clips as the 3D tour (js/data/tour.js), one section per screen.
-// Next / Back (or a vertical swipe, which snaps) move between SECTIONS; inside a section you swipe sideways between its ITEMS.
-// The opening is the eclipse portal: swipe up and you pass through it.
+// The journey: a glowing learning path winds down the whole page behind the sections, with signals travelling along it;
+// each section is a node on it that lights up as you arrive.
+// Next / Back (or a vertical swipe, which snaps) move between SECTIONS. Inside a section, the thumbnails under the player
+// (or a sideways swipe on the player) move between its ITEMS.
 // Links: #<section> or #<section>-<n> (e.g. #videos-3), old names via ALIASES; #enter glides in through the portal.
 import { SECTIONS, ALIASES } from '../js/data/tour.js';
 
@@ -8,125 +10,112 @@ const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const A = '../assets/';
 const $ = (q, el = document) => el.querySelector(q);
 const html = (s) => { const t = document.createElement('template'); t.innerHTML = s.trim(); return t.content.firstElementChild; };
+const pad = (n) => String(n).padStart(2, '0');
+const N = SECTIONS.length;
 
-// One clip: a muted looping video with a poster (or just the still, for `at` clips), shown 16:10 like the 3D screens.
-const media = ({ key, src, at, from, to }) => at != null
-  ? `<div class="media"><img src="${A}posters/${key}.jpg" alt="" loading="lazy"></div>`
-  : `<div class="media"><video muted loop playsinline preload="none" poster="${A}posters/${key}.jpg" data-src="${A}${src ?? key}.mp4"${from != null ? ` data-from="${from}" data-to="${to ?? ''}"` : ''}></video></div>`;
-const head = (kick, title) => `<div class="s-head">${kick ? `<p class="kick">${kick}</p>` : ''}<h2>${title}</h2></div>`;
-const label = (it) => `<p class="label">${it.group ? `<span class="k">${it.group}</span>` : ''}<span class="t">${it.name}</span>${it.sub ? `<span class="s">${it.sub}</span>` : ''}</p>`;
-
-const root = $('#stations');
-SECTIONS.forEach((sec) => {
-  let inner = '';
-  if (sec.type === 'walk') {
-    inner = head(sec.kick, sec.title) + `<div class="frame">${media(sec.clip)}</div>
-      <div class="chips steps">${sec.items.map((it, i) => `<button type="button" data-at="${it.from}"><b>${String(i + 1).padStart(2, '0')}</b>${it.name}</button>`).join('')}</div>`;
-  } else if (sec.type === 'shelf') {
-    inner = head(sec.kick, sec.title) + `<div class="row" tabindex="0">${sec.items.map((it, i) => `<article class="card" data-i="${i}">${media(it.clip)}${label(it)}</article>`).join('')}</div>
-      <div class="pager" aria-hidden="true">${sec.items.length > 1 ? sec.items.map(() => '<i></i>').join('') : ''}</div>`;
-  } else if (sec.type === 'brain') {
-    inner = head(sec.kick, 'A universe of signals <em>for every child</em>') + `<div class="frame glow">${media(sec.film)}</div><p class="sub after">${sec.sub}</p>`;
-  } else if (sec.type === 'end') {
-    inner = `<div class="end"><div class="eclipse"><span class="swirl"></span><span class="ring"></span></div>
-      <h2>${sec.title}</h2><div class="slot"><!-- CONTACT DETAILS GO HERE --></div>
-      <a class="btn" href="../contact.html">Talk to us</a><a class="btn ghost" href="./">Back to home</a></div>`;
-  }
-  root.appendChild(html(`<section class="station" id="st-${sec.key}" data-key="${sec.key}" data-name="${sec.label}">${inner}</section>`));
-});
-
-// ---- Video playback: a clip plays only while it's (mostly) on screen and, in a row, centred. Sources load on first play. ----
-const play = (v, on) => {
-  if (!v) return;
-  if (on) {
-    if (!v.src) {
-      v.src = v.dataset.src;
-      if (v.dataset.from) {        // only part of a recording, looped
-        const f = +v.dataset.from, t = +v.dataset.to || Infinity;
-        v.addEventListener('loadedmetadata', () => { v.currentTime = f; }, { once: true });
-        v.addEventListener('timeupdate', () => { if (v.currentTime >= t || v.currentTime < f - .5) v.currentTime = f; });
-      }
-    }
-    v.play().catch(() => {});
-  } else if (!v.paused) v.pause();
-};
+// ---- Playback: a clip plays only while its section is on screen. Sources load on first play. ----
+function play(v, on) {
+  if (!v || v.hidden) return;
+  if (on) { if (!v.src) v.src = v.dataset.src; v.play().catch(() => {}); } else if (!v.paused) v.pause();
+}
 const io = new IntersectionObserver((es) => es.forEach((e) => {
   const on = e.intersectionRatio > .6;
   if (on && e.target.paused && e.target.closest('#st-brain')) e.target.currentTime = 0;   // the brain film starts from the top each time you arrive
   play(e.target, on);
 }), { threshold: [0, .6, 1] });
-document.querySelectorAll('video').forEach((v) => io.observe(v));
 
-// Swipe rows: light the pager dot of the centred card; tapping a dot jumps there.
-const centre = (r) => { const mid = r.scrollLeft + r.clientWidth / 2; let k = 0, best = 1e9; [...r.children].forEach((c, i) => { const d = Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid); if (d < best) { best = d; k = i; } }); return k; };
-const showCard = (r, i, how = 'smooth') => { const c = r.children[i]; if (c) r.scrollTo({ left: c.offsetLeft - (r.clientWidth - c.offsetWidth) / 2, behavior: how }); };
-document.querySelectorAll('.row').forEach((r) => {
-  const dots = [...r.nextElementSibling.children];
-  const upd = () => { const k = centre(r); dots.forEach((d, i) => d.classList.toggle('on', i === k)); };
-  dots.forEach((d, i) => d.addEventListener('click', () => showCard(r, i)));
-  r.addEventListener('scroll', upd, { passive: true });
-  upd();
+// ---- Build the sections ----
+const root = $('#stations');
+SECTIONS.forEach((sec, k) => {
+  const top = `<div class="st-top"><span class="st-n">${pad(k + 1)}<i>/ ${pad(N)}</i></span><span class="st-l">${sec.label}</span></div>`;
+  const head = `<div class="s-head">${sec.kick ? `<p class="kick">${sec.kick}</p>` : ''}<h2>${sec.type === 'brain' ? 'A universe of signals <em>for every child</em>' : sec.title}</h2></div>`;
+  let body = '';
+  if (sec.type === 'walk' || sec.type === 'shelf' || sec.type === 'brain') {
+    const first = sec.type === 'brain' ? sec.film : sec.type === 'walk' ? sec.clip : sec.items[0].clip;
+    body = `<div class="player"><div class="media"><video muted loop playsinline preload="none"></video><img class="still" alt="" hidden></div><span class="sheen" aria-hidden="true"></span></div>
+      <div class="cap"><b class="t"></b><span class="s"></span></div>`;
+    if (sec.type === 'walk') body += `<div class="chips steps">${sec.items.map((it, i) => `<button type="button" data-i="${i}"><b>${pad(i + 1)}</b>${it.name}</button>`).join('')}</div>`;
+    else if (sec.type === 'shelf' && sec.items.length > 1) body += `<div class="thumbs">${sec.items.map((it, i) => `<button type="button" data-i="${i}" aria-label="${it.name.replace(/<[^>]+>/g, '')}"><img src="${A}posters/${it.clip.key}.jpg" alt="" loading="lazy"><span>${it.group ?? ''}</span></button>`).join('')}</div>`;
+    const el = html(`<section class="station" id="st-${sec.key}" data-key="${sec.key}" data-name="${sec.label}">${top}${head}${body}</section>`);
+    root.appendChild(el);
+    setupPlayer(el, sec, first);
+  } else if (sec.type === 'end') {
+    root.appendChild(html(`<section class="station" id="st-${sec.key}" data-key="${sec.key}" data-name="${sec.label}">${top}<div class="end">
+      <div class="eclipse"><span class="swirl"></span><span class="ring"></span></div><h2>${sec.title}</h2><div class="slot"><!-- CONTACT DETAILS GO HERE --></div>
+      <a class="btn" href="../contact.html">Talk to us</a><a class="btn ghost" href="./">Back to home</a></div></section>`));
+  }
 });
 
-// The student dashboard: the chips follow the recording; tapping one jumps there.
-{
-  const stu = $('#st-dashboard'), v = $('video', stu), chips = [...stu.querySelectorAll('.steps button')], strip = $('.steps', stu);
-  chips.forEach((b) => b.addEventListener('click', () => { play(v, true); v.currentTime = +b.dataset.at; }));
-  let k = -1;
+// ---- One player per section: the clip plays while the section is on screen; thumbnails / swipes change the item ----
+function setupPlayer(el, sec, first) {
+  const v = $('video', el), still = $('.still', el), t = $('.cap .t', el), s = $('.cap .s', el), player = $('.player', el);
+  const items = sec.type === 'shelf' ? sec.items : null;
+  let i = 0, part = null;
+  const load = (clip) => {
+    if (clip.at != null) { v.hidden = true; still.hidden = false; still.src = `${A}posters/${clip.key}.jpg`; return; }
+    v.hidden = false; still.hidden = true;
+    v.poster = `${A}posters/${clip.key}.jpg`;
+    v.dataset.src = `${A}${clip.src ?? clip.key}.mp4`;
+    part = clip.from != null ? [clip.from, clip.to ?? Infinity] : null;
+    if (v.src) { v.src = v.dataset.src; if (el.classList.contains('here')) v.play().catch(() => {}); }
+  };
+  v.addEventListener('loadedmetadata', () => { if (part) v.currentTime = part[0]; });
   v.addEventListener('timeupdate', () => {
-    let j = 0;
-    chips.forEach((b, i) => { if (v.currentTime >= +b.dataset.at - .05) j = i; });
-    if (j === k) return;
-    k = j;
-    chips.forEach((b, i) => b.classList.toggle('on', i === j));
-    const c = chips[j];
-    strip.scrollTo({ left: c.offsetLeft - strip.clientWidth / 2 + c.offsetWidth / 2, behavior: 'smooth' });
+    if (part && (v.currentTime >= part[1] || v.currentTime < part[0] - .5)) v.currentTime = part[0];
+    if (sec.type === 'walk') { let j = 0; sec.items.forEach((it, k) => { if (v.currentTime >= it.from - .05) j = k; }); stepTo(j, false); }
+    if (items?.[i].feats) { let f = items[i].feats[0][1]; items[i].feats.forEach(([t0, l]) => { if (v.currentTime >= t0) f = l; }); if (s.textContent !== f) s.textContent = f; }
   });
+  const caption = () => {
+    if (sec.type === 'brain') { t.textContent = ''; s.textContent = sec.sub; return; }
+    if (sec.type === 'walk') return;
+    const it = items[i];
+    t.innerHTML = it.name; s.textContent = it.feats ? it.feats[0][1] : it.sub ?? '';
+    if (it.group && sec.key === 'hub') t.insertAdjacentHTML('afterbegin', `<span class="g">${it.group}</span>`);
+  };
+  // shelf: pick an item
+  const pick = (k) => {
+    if (!items) return;
+    i = (k + items.length) % items.length;
+    load(items[i].clip); caption();
+    el.querySelectorAll('.thumbs button').forEach((b, j) => b.classList.toggle('on', j === i));
+    const tb = el.querySelectorAll('.thumbs button')[i]; tb?.parentElement.scrollTo({ left: tb.offsetLeft - 60, behavior: 'smooth' });
+    player.classList.remove('swap'); void player.offsetWidth; player.classList.add('swap');
+  };
+  // walk: the step chips follow the recording; tapping one jumps there
+  let step = -1;
+  const chips = [...el.querySelectorAll('.steps button')];
+  const stepTo = (j, seek) => {
+    if (seek) { play(v, true); v.currentTime = sec.items[j].from; }
+    if (j === step) return;
+    step = j;
+    chips.forEach((b, k) => b.classList.toggle('on', k === j));
+    t.textContent = sec.items[j].name; s.textContent = `Step ${j + 1} of ${sec.items.length}`;
+    const c = chips[j], strip = c?.parentElement; if (strip) strip.scrollTo({ left: c.offsetLeft - strip.clientWidth / 2 + c.offsetWidth / 2, behavior: 'smooth' });
+  };
+  chips.forEach((b) => b.addEventListener('click', () => stepTo(+b.dataset.i, true)));
+  el.querySelectorAll('.thumbs button').forEach((b) => b.addEventListener('click', () => pick(+b.dataset.i)));
+  // a sideways swipe on the player
+  let x0 = null;
+  player.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+  player.addEventListener('touchend', (e) => { if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null; if (Math.abs(dx) > 40) { if (items) pick(i + (dx < 0 ? 1 : -1)); else if (sec.type === 'walk') stepTo(Math.max(0, Math.min(sec.items.length - 1, step + (dx < 0 ? 1 : -1))), true); } });
+  el.pick = pick;
+  load(first); caption(); if (items) pick(0); if (sec.type === 'walk') stepTo(0, false);
+  io.observe(v);
 }
 
-// The grown-ups' dashboards: each card's line follows the feature its recording is showing.
-{
-  const g = $('#st-grown'), sec = SECTIONS.find((s) => s.key === 'grown');
-  g.querySelectorAll('.card').forEach((c) => {
-    const it = sec.items[+c.dataset.i], v = $('video', c), s = $('.label .s', c) ?? $('.label', c).appendChild(html('<span class="s"></span>'));
-    if (!it.feats) return;
-    s.textContent = it.feats[0][1];
-    v.addEventListener('timeupdate', () => { let f = it.feats[0][1]; it.feats.forEach(([t0, l]) => { if (v.currentTime >= t0) f = l; }); if (s.textContent !== f) s.textContent = f; });
-  });
-}
+// ---- Where you are: the header label, the section that is "here" (its node lights, its content rises in) ----
+const portal = $('#portal'), stations = [...document.querySelectorAll('.station')], all = [portal, ...stations], spy = $('#spy');
+let here = -1;
+const herePO = new IntersectionObserver((es) => es.forEach((e) => {
+  if (!e.isIntersecting) return;
+  e.target.classList.add('here', 'seen');
+  stations.forEach((s) => { if (s !== e.target) s.classList.remove('here'); });
+  here = stations.indexOf(e.target);
+  spy.textContent = e.target.dataset.name;
+}), { rootMargin: '-45% 0px -45% 0px' });
+stations.forEach((s) => herePO.observe(s));
 
-// ---- The portal: as the first screen scrolls away the ring grows past you and the screen floods with light ----
-const portal = $('#portal'), ecl = $('.eclipse', portal), ptext = $('.portal-text', portal), cue = $('.cue', portal), flash = $('.flash'), dots = $('.dots');
-let boost = 0;
-const frame = () => {
-  requestAnimationFrame(frame);
-  const run = portal.offsetHeight - innerHeight, q = Math.min(1, Math.max(0, scrollY / Math.max(1, run)));
-  ecl.style.transform = `scale(${1 + q * q * 7})`;
-  ecl.style.opacity = 1 - Math.max(0, (q - .82) / .18);
-  ptext.style.opacity = 1 - Math.min(1, q * 2.2);
-  ptext.style.transform = `translateY(${-q * 40}px)`;
-  cue.style.opacity = 1 - Math.min(1, q * 4);
-  boost = Math.max(0, boost - .02);
-  flash.style.opacity = Math.max(Math.max(0, 1 - Math.abs(q - .86) / .14) * .9, boost);
-  dots.style.opacity = q > .95 ? 1 : 0;
-};
-requestAnimationFrame(frame);
-
-// ---- Sections: dots on the right, the header label, and Back / Next ----
-const stations = [...document.querySelectorAll('.station')], all = [portal, ...stations], spy = $('#spy');
-stations.forEach((s) => {
-  const b = dots.appendChild(html(`<button type="button" aria-label="${s.dataset.name}"></button>`));
-  b.addEventListener('click', () => s.scrollIntoView({ behavior: 'smooth' }));
-});
-{
-  const ob = new IntersectionObserver((es) => es.forEach((e) => {
-    if (!e.isIntersecting) return;
-    const i = stations.indexOf(e.target);
-    [...dots.children].forEach((b, j) => b.classList.toggle('on', i === j));
-    spy.textContent = e.target.dataset.name;
-  }), { rootMargin: '-45% 0px -45% 0px' });
-  stations.forEach((s) => ob.observe(s));
-}
+// ---- Back / Next ----
 {
   const bar = $('.mnav'), prev = $('.prev', bar), next = $('.next', bar), lab = $('.nx-l', bar);
   const cur = () => { let k = 0; all.forEach((el, i) => { if (el.getBoundingClientRect().top <= innerHeight * .4) k = i; }); return k; };
@@ -136,6 +125,10 @@ stations.forEach((s) => {
   next.addEventListener('click', () => go(1));
   addEventListener('scroll', upd, { passive: true }); upd();
 }
+
+// ---- The portal: as the first screen scrolls away the ring grows past you and the screen floods with light ----
+const ecl = $('.eclipse', portal), ptext = $('.portal-text', portal), cue = $('.cue', portal), flash = $('.flash');
+let boost = 0;
 
 // ---- Arriving on a link ----
 const arrive = () => {
@@ -147,29 +140,78 @@ const arrive = () => {
   if (!st) return;
   boost = 1;
   st.scrollIntoView({ behavior: 'instant' });
-  const r = $('.row', st);
-  if (r && m[2]) showCard(r, +m[2] - 1, 'instant');
+  if (m[2] && st.pick) st.pick(+m[2] - 1);
 };
 addEventListener('hashchange', arrive);
 requestAnimationFrame(() => requestAnimationFrame(arrive));
 
-// ---- Stars behind everything ----
+// ---- The journey canvas: stars, drifting nebulae, and the learning path with its travelling signals ----
 {
-  const cv = $('.stars'), x = cv.getContext('2d'), dpr = Math.min(devicePixelRatio, 2);
-  const S = Array.from({ length: 140 }, () => ({ x: Math.random(), y: Math.random(), r: Math.random() * 1.2 + .3, t: Math.random() * 6 }));
-  let W, H;
+  const cv = $('.vibe'), x = cv.getContext('2d'), dpr = Math.min(devicePixelRatio, 2);
+  const S = Array.from({ length: 130 }, () => ({ x: Math.random(), y: Math.random(), r: Math.random() * 1.1 + .3, t: Math.random() * 6, z: Math.random() * .6 + .2 }));
+  const NEB = [[.15, .2, '64,150,255'], [.85, .55, '122,92,255'], [.3, .85, '63,214,224']];
+  let W = 0, H = 0;
   const size = () => { W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; };
   size(); addEventListener('resize', size);
+  // The path in PAGE coordinates: it winds left and right as it falls, through the middle of every section's top.
+  const pathX = (y) => W * .5 + Math.sin(y / 520) * W * .36 + Math.sin(y / 190) * W * .04;
+  const nodeY = () => stations.map((s) => s.offsetTop + 46);
+  let ny = nodeY(); addEventListener('resize', () => { ny = nodeY(); }); setTimeout(() => { ny = nodeY(); }, 1500);
   const draw = (now) => {
     requestAnimationFrame(draw);
+    if (document.hidden) return;
+    const t = RM ? 0 : now / 1000, sy = scrollY;
     x.setTransform(dpr, 0, 0, dpr, 0, 0);
     x.clearRect(0, 0, W, H);
-    const off = scrollY * .04;
+    // nebulae drift slowly and move a little with the page
+    for (const [nx, nyy, c] of NEB) {
+      const cx = W * (nx + .05 * Math.sin(t * .07 + nx * 9)), cy = H * (nyy + .05 * Math.cos(t * .05 + nyy * 7)) - (sy * .05) % H;
+      const g = x.createRadialGradient(cx, cy, 0, cx, cy, W * .9);
+      g.addColorStop(0, `rgba(${c},.16)`); g.addColorStop(1, `rgba(${c},0)`);
+      x.fillStyle = g; x.fillRect(0, 0, W, H);
+    }
+    // stars, with depth parallax
     for (const s of S) {
-      const y = ((s.y * H - off) % H + H) % H;
-      x.fillStyle = `rgba(201,212,255,${.35 + .35 * Math.sin(now / 1000 + s.t)})`;
+      const y = ((s.y * H - sy * s.z * .2) % H + H) % H;
+      x.fillStyle = `rgba(201,212,255,${.3 + .35 * Math.sin(t * 1.1 + s.t)})`;
       x.beginPath(); x.arc(s.x * W, y, s.r, 0, 6.283); x.fill();
     }
+    // the learning path (only after the portal), drawn for the part of the page on screen
+    const start = portal.offsetHeight - H * .2;
+    const y0 = Math.max(start, sy - 40), y1 = sy + H + 40;
+    if (y1 > start) {
+      x.lineCap = 'round';
+      for (const [w, a] of [[7, .06], [2, .4]]) {
+        x.beginPath();
+        for (let y = y0; y <= y1; y += 8) { const px = pathX(y), py = y - sy; y === y0 ? x.moveTo(px, py) : x.lineTo(px, py); }
+        const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, `rgba(108,196,255,${a})`); g.addColorStop(1, `rgba(63,214,224,${a})`);
+        x.strokeStyle = g; x.lineWidth = w; x.stroke();
+      }
+      // signals travelling down the path
+      const span = 900;
+      for (let k = 0; k < 7; k++) {
+        const y = y0 + ((t * 140 + k * span / 7 * 1.7) % (y1 - y0 + 1));
+        const px = pathX(y), py = y - sy;
+        const g = x.createRadialGradient(px, py, 0, px, py, 14); g.addColorStop(0, 'rgba(227,244,255,.95)'); g.addColorStop(.3, 'rgba(108,196,255,.5)'); g.addColorStop(1, 'rgba(108,196,255,0)');
+        x.fillStyle = g; x.beginPath(); x.arc(px, py, 14, 0, 6.283); x.fill();
+      }
+      // a node per section; the one you're at glows
+      ny.forEach((yy, k) => {
+        if (yy < y0 - 40 || yy > y1 + 40) return;
+        const px = pathX(yy), py = yy - sy, on = k === here, r = on ? 7 + Math.sin(t * 3) * 1.2 : 4;
+        if (on) { const g = x.createRadialGradient(px, py, 0, px, py, 40); g.addColorStop(0, 'rgba(108,196,255,.55)'); g.addColorStop(1, 'rgba(108,196,255,0)'); x.fillStyle = g; x.beginPath(); x.arc(px, py, 40, 0, 6.283); x.fill(); }
+        x.fillStyle = on ? '#e3f4ff' : 'rgba(108,196,255,.7)'; x.beginPath(); x.arc(px, py, r, 0, 6.283); x.fill();
+      });
+    }
+    // the portal: as the first screen scrolls away the ring grows past you and the screen floods with light
+    const run = portal.offsetHeight - H, q = Math.min(1, Math.max(0, sy / Math.max(1, run)));
+    ecl.style.transform = `scale(${1 + q * q * 7})`;
+    ecl.style.opacity = 1 - Math.max(0, (q - .82) / .18);
+    ptext.style.opacity = 1 - Math.min(1, q * 2.2);
+    ptext.style.transform = `translateY(${-q * 40}px)`;
+    cue.style.opacity = 1 - Math.min(1, q * 4);
+    boost = Math.max(0, boost - .02);
+    flash.style.opacity = Math.max(Math.max(0, 1 - Math.abs(q - .86) / .14) * .9, boost);
   };
   requestAnimationFrame(draw);
 }
