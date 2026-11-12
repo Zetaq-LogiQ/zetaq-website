@@ -10,6 +10,7 @@ if (matchMedia('(min-width: 761px)').matches && !/mobile=1/.test(location.search
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Inter:wght@400;500;600&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500&display=swap">
 <link rel="stylesheet" href="m.css"><link rel="stylesheet" href="home.css">
 </head><body class="home" data-tour="tour.html">
+<canvas class="stars fixed" aria-hidden="true"></canvas>
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
   <!-- ZetaQ line pictographs: 24x24, 1.6 stroke, round caps. Use: <svg class="ic"><use href="#i-student"/></svg> -->
   <symbol id="i-student" viewBox="0 0 24 24"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.6 2.7 3 6 3s6-1.4 6-3v-5"/><path d="M22 9v5"/></symbol>
@@ -39,45 +40,82 @@ if (matchMedia('(min-width: 761px)').matches && !/mobile=1/.test(location.search
   <a href="tour.html#enter" data-portal>Explore the tour</a>
 </nav>
 
-<main id="top">
-  <!-- A full-screen poster: the eclipse is the backdrop and the way in -->
-  <section class="hero">
-    <canvas class="stars" aria-hidden="true"></canvas>
+<main id="top" class="story">
+  <!-- 1. The poster: the eclipse is the backdrop and the way in -->
+  <section class="slide hero" data-name="ZetaQ">
     <a class="eclipse hero-ecl" href="tour.html#enter" data-portal aria-label="Step inside the ZetaQ tour"><span class="swirl"></span><span class="ring"></span></a>
     <div class="hero-copy">
       <p class="kick">ZetaQ · Personalised learning</p>
       <h1>Thirty students.<br>Thirty ways to learn.<br><em>One tutor that gets all of them.</em></h1>
     </div>
     <div class="hero-foot">
-      <p class="sub">Adaptive quizzes and syllabus-aligned lessons that reshape themselves around each learner.</p>
       <a class="btn big" href="tour.html#enter" data-portal><span class="dot" aria-hidden="true"></span>Step inside</a>
+      <a class="tlink" href="tour.html#videos" data-portal>Watch the video lessons <span aria-hidden="true">→</span></a>
+    </div>
+    <span class="swipe-hint" aria-hidden="true"></span>
+  </section>
+
+  <!-- 2. One class, thirty paths -->
+  <section class="slide" data-name="Our goal">
+    <div class="ring30" aria-hidden="true"><div class="r30-mid"><b>30</b><span>students<br>30 paths</span></div></div>
+    <div class="say">
+      <h2>Ahead or behind, <em>everyone moves forward.</em></h2>
+      <p>Each answer shapes the next question, so every student works at the right level.</p>
+    </div>
+  </section>
+
+  <!-- 3. Who it's for: four tiles; tap one for the details -->
+  <section class="slide" data-name="Who it's for">
+    <div class="say up"><p class="kick">Who it's for</p><h2>One platform, <em>everyone around a learner.</em></h2></div>
+    <div class="tiles"><button class="tile" type="button" data-i="0"><svg class="ic" aria-hidden="true"><use href="#i-student"/></svg><b>Students</b><span>Learn your way</span><i aria-hidden="true">+</i></button><button class="tile" type="button" data-i="1"><svg class="ic" aria-hidden="true"><use href="#i-teacher"/></svg><b>Teachers</b><span>Reach every child</span><i aria-hidden="true">+</i></button><button class="tile" type="button" data-i="2"><svg class="ic" aria-hidden="true"><use href="#i-parent"/></svg><b>Parents</b><span>Know how to help</span><i aria-hidden="true">+</i></button><button class="tile" type="button" data-i="3"><svg class="ic" aria-hidden="true"><use href="#i-school"/></svg><b>Schools</b><span>Every class, clear</span><i aria-hidden="true">+</i></button></div>
+  </section>
+
+  <!-- 4. Every chapter, five ways in -->
+  <section class="slide" data-name="Every chapter">
+    <div class="orbit" aria-hidden="true">
+      <svg class="links" viewBox="0 0 300 300"><circle cx="150" cy="150" r="108"/></svg>
+      <div class="core"><svg class="ic" aria-hidden="true"><use href="#i-notes"/></svg><b>One<br>chapter</b></div>
+      <div class="node" style="--k:0"><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg><span>Video</span></div><div class="node" style="--k:1"><svg class="ic" aria-hidden="true"><use href="#i-notes"/></svg><span>Notes</span></div><div class="node" style="--k:2"><svg class="ic" aria-hidden="true"><use href="#i-cube"/></svg><span>Interactive</span></div><div class="node" style="--k:3"><svg class="ic" aria-hidden="true"><use href="#i-quiz"/></svg><span>Quiz</span></div><div class="node" style="--k:4"><svg class="ic" aria-hidden="true"><use href="#i-game"/></svg><span>Game</span></div>
+    </div>
+    <div class="say">
+      <h2>Every chapter, <em>five ways in.</em></h2>
+      <p>Watch it. Read it. Step inside it. Test it. Play it.</p>
       <a class="tlink" href="tour.html#videos" data-portal>Watch the video lessons <span aria-hidden="true">→</span></a>
     </div>
   </section>
 
-  <section class="sec reveal" id="goal">
-    <p class="num"><span>01</span>Our goal</p>
-    <h2>Built for the student who's ahead, <em>and the one who's behind.</em></h2>
-    <p class="lead">Every student learns differently. Finally, so does the quiz.</p>
-    <figure class="class" id="class" aria-label="Thirty students, each at a different point in the same chapter">
-      <figcaption><span>One class · 30 students</span><span>30 paths</span></figcaption>
-    </figure>
-    <div class="swipe" aria-label="Why ZetaQ">
-      <article><b>01</b><h3>The quiz that learns the learner</h3><p>Each answer shapes the next question, so every student works at the right level.</p></article>
-      <article><b>02</b><h3>Same syllabus, different journey</h3><p>Every lesson follows the chapters your class is studying, at each student's own pace.</p></article>
-      <article><b>03</b><h3>Teaching made personal, at classroom scale</h3><p>One-to-one attention for every student, across the whole class.</p></article>
+  <!-- 5. Beyond the syllabus -->
+  <section class="slide" data-name="Beyond the syllabus">
+    <div class="say up"><p class="kick">Beyond the syllabus</p><h2>Labs to explore, <em>build and wonder.</em></h2></div>
+    <div class="hubs6"><div class="h6" style="--k:0"><svg class="ic" aria-hidden="true"><use href="#i-curiosity"/></svg><span>Curiosity Hub</span></div><div class="h6" style="--k:1"><svg class="ic" aria-hidden="true"><use href="#i-engineering"/></svg><span>Engineering Lab</span></div><div class="h6" style="--k:2"><svg class="ic" aria-hidden="true"><use href="#i-chemistry"/></svg><span>Chemistry Lab</span></div><div class="h6" style="--k:3"><svg class="ic" aria-hidden="true"><use href="#i-physics"/></svg><span>Physics Lab</span></div><div class="h6" style="--k:4"><svg class="ic" aria-hidden="true"><use href="#i-observatory"/></svg><span>Observatory</span></div><div class="h6" style="--k:5"><svg class="ic" aria-hidden="true"><use href="#i-creativity"/></svg><span>Creativity Hub</span></div></div>
+  </section>
+
+  <!-- 6. Try it yourself -->
+  <section class="slide" data-name="Try it">
+    <div class="say up"><p class="kick">Try it yourself</p><h2>Play with <em>ZetaQ.</em></h2></div>
+    <div class="tries">
+      <a class="try" href="../brain-test.html"><svg class="ic" aria-hidden="true"><use href="#i-curiosity"/></svg><div><b>Test your brain</b><span>Ten questions. No single right answer.</span></div><i aria-hidden="true">→</i></a>
+      <a class="try" href="../tools.html"><svg class="ic" aria-hidden="true"><use href="#i-game"/></svg><div><b>Tools</b><span>Two games and a 3D museum.</span></div><i aria-hidden="true">→</i></a>
     </div>
   </section>
 
-  <section class="sec reveal" id="offer">
-    <p class="num"><span>02</span>Who it's for</p>
-    <h2>One platform, <em>for everyone around a learner.</em></h2>
-    <div class="who-tabs" role="tablist">
-      <button type="button" role="tab" aria-selected="true" data-i="0"><svg class="ic" aria-hidden="true"><use href="#i-student"/></svg>Students</button><button type="button" role="tab" aria-selected="false" data-i="1"><svg class="ic" aria-hidden="true"><use href="#i-teacher"/></svg>Teachers</button><button type="button" role="tab" aria-selected="false" data-i="2"><svg class="ic" aria-hidden="true"><use href="#i-parent"/></svg>Parents</button><button type="button" role="tab" aria-selected="false" data-i="3"><svg class="ic" aria-hidden="true"><use href="#i-school"/></svg>Schools</button>
+  <!-- 7. The way in -->
+  <section class="slide close" data-name="Explore">
+    <span class="halo" aria-hidden="true"></span>
+    <div class="say">
+      <p class="kick">No two students alike</p>
+      <h2>See ZetaQ <em>in your school.</em></h2>
+      <a class="btn big" href="tour.html#enter" data-portal><span class="dot" aria-hidden="true"></span>Explore ZetaQ</a>
+      <a class="tlink" href="../contact.html">Talk to us <span aria-hidden="true">→</span></a>
     </div>
-    <div class="who-panels">
-      <article>
-        <h3>Learn at your own pace, in your own way.</h3>
+    <footer><span><b>ZetaQ</b> · The learning platform</span><span>www.zetaq.in</span></footer>
+  </section>
+</main>
+
+<nav class="pips" aria-label="Screens"></nav>
+<!-- Who it's for: the details slide up from the bottom -->
+<div class="sheet" role="dialog" aria-modal="true" aria-label="Details" hidden>
+  <div class="sheet-card"><button class="sheet-x" type="button" aria-label="Close">×</button><div class="sheet-body" data-i="0" hidden><p class="kick">For students</p><h3>Learn at your own pace, in your own way.</h3>
         <ul>
           <li>Quizzes that get harder when you're ready and easier when you're not</li>
           <li>Lessons that follow your class syllabus, chapter by chapter</li>
@@ -85,64 +123,26 @@ if (matchMedia('(min-width: 761px)').matches && !/mobile=1/.test(location.search
           <li>Interactive video lessons that explain every chapter step by step</li>
           <li>Lesson slides (PPTX) and summary PDFs to revise before every test</li>
         </ul>
-        <a class="tlink" href="tour.html#students" data-portal>Explore for students <span aria-hidden="true">→</span></a>
-      </article>
-      <article hidden>
-        <h3>Reach every student, not just the front row.</h3>
+        <a class="tlink" href="tour.html#students" data-portal>Explore for students <span aria-hidden="true">→</span></a></div><div class="sheet-body" data-i="1" hidden><p class="kick">For teachers</p><h3>Reach every student, not just the front row.</h3>
         <ul>
           <li>Quizzes matched to the chapters you're teaching</li>
           <li>Every student practises at their own level, in the same class</li>
           <li>Spot who needs help before the test, not after</li>
         </ul>
-        <a class="tlink" href="tour.html#teachers" data-portal>Explore for teachers <span aria-hidden="true">→</span></a>
-      </article>
-      <article hidden>
-        <h3>Know how your child is learning, not just their marks.</h3>
+        <a class="tlink" href="tour.html#teachers" data-portal>Explore for teachers <span aria-hidden="true">→</span></a></div><div class="sheet-body" data-i="2" hidden><p class="kick">For parents</p><h3>Know how your child is learning, not just their marks.</h3>
         <ul>
           <li>See which topics your child is strong in and where they need support</li>
           <li>Practice that follows the school syllabus, so homework time counts</li>
           <li>Safe, focused learning without random distractions</li>
         </ul>
-        <a class="tlink" href="tour.html#parents" data-portal>Explore for parents <span aria-hidden="true">→</span></a>
-      </article>
-      <article hidden>
-        <h3>Personal learning for every classroom.</h3>
+        <a class="tlink" href="tour.html#parents" data-portal>Explore for parents <span aria-hidden="true">→</span></a></div><div class="sheet-body" data-i="3" hidden><p class="kick">For schools</p><h3>Personal learning for every classroom.</h3>
         <ul>
           <li>Adaptive quizzes and lessons aligned to your board and syllabus</li>
           <li>One platform for every class, teacher and student</li>
           <li>Built for schools and coaching centres of any size</li>
         </ul>
-        <a class="tlink" href="tour.html#schools" data-portal>Explore for schools <span aria-hidden="true">→</span></a>
-      </article>
-    </div>
-    <p class="hubs-k">Beyond the syllabus</p>
-    <div class="hubs swipe"><div class="hub"><svg class="ic" aria-hidden="true"><use href="#i-curiosity"/></svg><b>Curiosity Hub</b><span>The body, cells and more, in 3D</span></div><div class="hub"><svg class="ic" aria-hidden="true"><use href="#i-engineering"/></svg><b>Engineering Lab</b><span>Build working machines</span></div><div class="hub"><svg class="ic" aria-hidden="true"><use href="#i-chemistry"/></svg><b>Chemistry Lab</b><span>Safe experiments, again and again</span></div><div class="hub"><svg class="ic" aria-hidden="true"><use href="#i-physics"/></svg><b>Physics Lab</b><span>Light, circuits and forces</span></div><div class="hub"><svg class="ic" aria-hidden="true"><use href="#i-observatory"/></svg><b>Virtual Observatory</b><span>Travel the solar system</span></div><div class="hub"><svg class="ic" aria-hidden="true"><use href="#i-creativity"/></svg><b>Creativity Hub</b><span>Build, colour and design</span></div></div>
-  </section>
-
-  <section class="sec reveal" id="videos">
-    <p class="num"><span>03</span>Inside every chapter</p>
-    <h2>Every chapter, <em>five ways in.</em></h2>
-    <ol class="ways"><li><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg><b>Video lesson</b><i>Watch it</i></li><li><svg class="ic" aria-hidden="true"><use href="#i-notes"/></svg><b>Notes</b><i>Read it</i></li><li><svg class="ic" aria-hidden="true"><use href="#i-cube"/></svg><b>Interactive lesson</b><i>Step inside it</i></li><li><svg class="ic" aria-hidden="true"><use href="#i-quiz"/></svg><b>Adaptive quiz</b><i>Test it</i></li><li><svg class="ic" aria-hidden="true"><use href="#i-game"/></svg><b>Game</b><i>Play it</i></li></ol>
-    <a class="btn ghost wide" href="tour.html#videos" data-portal>Watch the video lessons <span aria-hidden="true">→</span></a>
-  </section>
-
-  <section class="sec reveal" id="try">
-    <p class="num"><span>04</span>Try it yourself</p>
-    <div class="try">
-      <a class="try-card" href="../brain-test.html"><svg class="ic" aria-hidden="true"><use href="#i-curiosity"/></svg><p class="who">Test your brain</p><h3>Ten questions. <em>No single right answer.</em></h3><span class="tlink">Take the test <span aria-hidden="true">→</span></span></a>
-      <a class="try-card" href="../tools.html"><svg class="ic" aria-hidden="true"><use href="#i-game"/></svg><p class="who">Tools</p><h3>Two games and <em>a simulation.</em></h3><span class="tlink">Open the tools <span aria-hidden="true">→</span></span></a>
-    </div>
-  </section>
-
-  <section class="close reveal">
-    <span class="halo" aria-hidden="true"></span>
-    <p class="kick">No two students alike</p>
-    <h2>Every student gets <em>their own path.</em></h2>
-    <a class="btn" href="tour.html#enter" data-portal>Explore ZetaQ</a>
-  </section>
-</main>
-
-<footer><span><b>ZetaQ</b> · The learning platform</span><span>www.zetaq.in</span></footer>
+        <a class="tlink" href="tour.html#schools" data-portal>Explore for schools <span aria-hidden="true">→</span></a></div></div>
+</div>
 
 <!-- Always within thumb reach -->
 <a class="dock" href="tour.html#enter" data-portal><span class="dot"></span>Explore ZetaQ</a>
@@ -150,18 +150,36 @@ if (matchMedia('(min-width: 761px)').matches && !/mobile=1/.test(location.search
 
 <script type="module" src="../js/home.js"></script>
 <script>
-// Menu, and the who-is-it-for tabs.
+// Menu.
 const btn = document.querySelector('.menu-btn'), menu = document.getElementById('menu');
 btn.addEventListener('click', () => { const o = btn.getAttribute('aria-expanded') !== 'true'; btn.setAttribute('aria-expanded', o); menu.classList.toggle('open', o); });
 menu.addEventListener('click', (e) => { if (e.target.closest('a')) { btn.setAttribute('aria-expanded', false); menu.classList.remove('open'); } });
-const dock = document.querySelector('.dock'), ecl = document.querySelector('.hero .eclipse');
-const closeEl = document.querySelector('.close');
-const dockUpd = () => { const h = ecl.getBoundingClientRect(), c = closeEl.getBoundingClientRect(); dock.classList.toggle('on', h.bottom < innerHeight * .2 && c.top > innerHeight * .9); };
-addEventListener('scroll', dockUpd, { passive: true }); dockUpd();
-// Sections rise in as they arrive.
-const rv = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); rv.unobserve(e.target); } }), { threshold: .12 });
-document.querySelectorAll('.reveal').forEach((el) => rv.observe(el));
-const tabs = [...document.querySelectorAll('.who-tabs button')], panels = [...document.querySelectorAll('.who-panels article')];
-tabs.forEach((t) => t.addEventListener('click', () => { tabs.forEach((x) => x.setAttribute('aria-selected', x === t)); panels.forEach((p, i) => { p.hidden = i !== +t.dataset.i; }); }));
+// The story: one idea per screen. The screen you're on animates in; pips on the right show where you are.
+const slides = [...document.querySelectorAll('.slide')], pips = document.querySelector('.pips'), dock = document.querySelector('.dock');
+slides.forEach((sl) => { const b = pips.appendChild(document.createElement('button')); b.type = 'button'; b.setAttribute('aria-label', sl.dataset.name); b.onclick = () => sl.scrollIntoView({ behavior: 'smooth' }); });
+const slideIO = new IntersectionObserver((es) => es.forEach((e) => {
+  if (!e.isIntersecting) return;
+  const k = slides.indexOf(e.target);
+  e.target.classList.add('in');
+  [...pips.children].forEach((b, i) => b.classList.toggle('on', i === k));
+  pips.classList.toggle('on', k > 0);
+  dock.classList.toggle('on', k > 0 && k < slides.length - 1);
+}), { threshold: .55 });
+slides.forEach((sl) => slideIO.observe(sl));
+// 30 seats in a ring, each filled to a different point: same chapter, different progress.
+const ring = document.querySelector('.ring30');
+[72, 35, 90, 58, 15, 64, 81, 42, 27, 96, 50, 68, 8, 77, 39, 61, 88, 22, 55, 70, 33, 93, 46, 12, 84, 59, 29, 75, 66, 48].forEach((v, i) => {
+  const d = document.createElement('span');
+  d.className = 'seat' + (v < 30 ? ' w' : '');
+  d.style.cssText = `--a:${i * 12}deg;--p:${v}%;--d:${i * 45}ms`;
+  ring.appendChild(d);
+});
+// Who it's for: tap a tile, its details slide up.
+const sheet = document.querySelector('.sheet'), bodies = [...sheet.querySelectorAll('.sheet-body')];
+const openSheet = (i) => { bodies.forEach((b, j) => { b.hidden = j !== i; }); sheet.hidden = false; requestAnimationFrame(() => sheet.classList.add('open')); };
+const closeSheet = () => { sheet.classList.remove('open'); setTimeout(() => { sheet.hidden = true; }, 350); };
+document.querySelectorAll('.tile').forEach((t) => t.addEventListener('click', () => openSheet(+t.dataset.i)));
+sheet.addEventListener('click', (e) => { if (e.target === sheet || e.target.closest('.sheet-x')) closeSheet(); });
+addEventListener('keydown', (e) => { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
 </script>
 </body></html>
