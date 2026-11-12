@@ -1,0 +1,49 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ZetaQ Tour</title>
+<script>
+// Phones get their own tour (m/tour.html). ?desktop=1 keeps this one.
+if (matchMedia('(max-width: 760px)').matches && !/desktop=1/.test(location.search)) location.replace('../m/tour.html' + location.hash);
+// ES modules can't load from file://, and this tour needs WebGL; otherwise use the lighter tour.
+if (location.protocol === 'file:') location.replace('../m/tour.html?nogl=1' + location.hash);
+if (location.hash === '#enter') document.documentElement.classList.add('entering');
+addEventListener('load', () => { if (!window.__tour) location.replace('../m/tour.html?nogl=1' + location.hash); });
+</script>
+<link rel="icon" href="../assets/logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Inter:wght@400;500&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="css/base.css"><link rel="stylesheet" href="css/overlay.css">
+</head><body>
+<header class="top"><a class="brand" href="../" aria-label="ZetaQ home"><img src="../assets/logo.webp" alt=""><span>ZetaQ</span></a><nav class="progress" aria-label="Sections of the tour"></nav><span id="spy"></span><a class="hbtn" href="#videos" data-jump="videos">Video lessons</a><a class="hbtn ghost" href="../">Home</a></header>
+<main>
+<!-- One continuous 3D tour: through the portal, along the learning path, docking square-on at each showcase. -->
+<section id="tour" class="pin" data-label="ZetaQ" style="--len:100vh"><div class="sticky">
+  <!-- Opening shot, framed by the eclipse portal -->
+  <div class="intro">
+    <p class="kick w" style="--i:0">AI-powered personalised learning</p>
+    <h1><span class="w" style="--i:1">Learning,</span> <span class="w" style="--i:2">shaped</span> <span class="w" style="--i:3">to</span> <em class="w" style="--i:4">every</em> <em class="w" style="--i:5">mind.</em></h1>
+    <p class="lede w" style="--i:6">Nobody left behind. Nobody held back.</p>
+    <p class="cue">Press Next to step through</p>
+  </div>
+
+  <!-- Labels and report cards of the diverging brain (placed by tour/js/world/universe.js) -->
+  <div class="u-layer" aria-hidden="true"></div>
+
+  <!-- Caption above the docked showcase; its text changes with each target -->
+  <div class="cap"><p class="kick"></p><h2></h2><p class="sub"></p></div>
+  <div class="end"><h2>See ZetaQ <em>in your school.</em></h2><div class="slot"><!-- CONTACT DETAILS GO HERE --></div><a class="btn ghost" href="../">Back to home</a></div>
+
+  <!-- Inside a section: the small control that moves between its items -->
+  <div class="subnav" role="group" aria-label="Items in this section">
+    <button class="sp" type="button" aria-label="Previous"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <div class="s-mid"><p class="s-name"></p><div class="s-row"><span class="s-dots"></span><span class="s-count"></span></div></div>
+    <button class="sn" type="button" aria-label="Next item"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+  <!-- Section by section: Back and Next (named) -->
+  <div class="navbar" role="group" aria-label="Tour sections">
+    <button class="prev" type="button" aria-label="Previous section"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button class="next" type="button"><span class="nx"><small>Next</small><b class="nx-l"></b></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+  </div>
+  <div class="flash" aria-hidden="true"></div>
+</div></section>
+</main>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+<script type="module" src="js/main.js"></script>
+</body></html>

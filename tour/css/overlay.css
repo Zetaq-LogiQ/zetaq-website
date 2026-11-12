@@ -1,0 +1,155 @@
+/* Design 4 - text over the tour. Opacity and content are driven from js/tour.js. */
+
+/* Opening shot */
+.intro { position: absolute; z-index: 3; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 0 16px;
+  background: radial-gradient(55% 45% at 50% 50%, rgba(6, 7, 26, .55), transparent); }
+.intro h1 { max-width: 12em; }
+.intro .lede { color: var(--soft); font-size: clamp(17px, 1.5vw, 22px); margin: 20px 0 0; }
+.intro .ctas { margin-top: 28px; }
+.intro .w { display: inline-block; animation: rise 1.2s var(--ease) both; animation-delay: calc(.1s + var(--i) * 80ms); }
+.intro .kick.w, .intro .lede.w, .intro .ctas.w { display: block; }
+@keyframes rise { from { opacity: 0; transform: translateY(.45em); filter: blur(12px); } }
+.cue { margin: 36px 0 0; font: 500 11px var(--mono); letter-spacing: .22em; text-transform: uppercase; color: var(--dim); animation: bob 2.4s var(--ease) infinite; }
+@keyframes bob { 50% { transform: translateY(8px); opacity: .5; } }
+
+/* Caption above the docked showcase (the 3D camera leaves room for it) */
+.cap { position: absolute; z-index: 2; left: 0; right: 0; top: clamp(64px, 8.5vh, 92px); text-align: center; padding: 0 16px; opacity: 0; pointer-events: none; transition: visibility 0s; }
+.cap.hide { visibility: hidden; }
+.cap h2 { max-width: 24em; margin: 0 auto; text-shadow: 0 4px 30px rgba(6, 7, 26, .9); }
+.cap .sub { margin: 10px auto 0; max-width: 46em; color: var(--soft); font-size: clamp(15px, 1.15vw, 18px); min-height: 1.4em; }
+.cap .sub b { font: 500 12px var(--mono); color: var(--a); margin-right: 6px; }
+.cap .sub i { font-family: var(--ser); font-size: 1.2em; color: var(--a); }
+.cap .sub.flip { animation: flip .5s var(--ease); }
+@keyframes flip { from { opacity: 0; transform: translateY(8px); } }
+
+/* Under the showcase: a constellation timeline. A thin glowing line with a star per step;
+   it fills amber-to-teal up to the current star, and the current step is named above it. */
+.rail { position: absolute; z-index: 2; left: 50%; bottom: clamp(18px, 3.6vh, 36px); transform: translateX(-50%); width: min(760px, 86vw); opacity: 0; text-align: center; }
+.now { margin: 0 0 14px; display: flex; justify-content: center; align-items: baseline; gap: 12px; }
+.now b { font: 500 12px var(--mono); letter-spacing: .16em; color: var(--a); }
+.now span { font: 600 clamp(17px, 1.4vw, 22px) var(--disp); letter-spacing: -.01em; }
+.now.flip { animation: flip .5s var(--ease); }
+.line { position: relative; height: 14px; }
+.line::before, .fill { content: ""; position: absolute; left: 0; top: 50%; height: 1px; transform: translateY(-50%); }
+.line::before { right: 0; background: rgba(255, 255, 255, .16); }
+.fill { width: 0; height: 2px; background: linear-gradient(90deg, var(--a), var(--teal)); box-shadow: 0 0 10px rgba(255, 178, 94, .6); transition: width .7s var(--ease); }
+.line ol { position: relative; display: flex; justify-content: space-between; list-style: none; margin: 0; padding: 0; height: 100%; }
+.line li { position: relative; display: grid; place-items: center; width: 14px; }
+.line button { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .35); cursor: pointer; transition: transform .3s var(--ease), background .3s, box-shadow .3s; }
+.line li.done button { background: var(--a); box-shadow: 0 0 8px rgba(255, 178, 94, .8); }
+.line li.on button { width: 9px; height: 9px; background: #fff; box-shadow: 0 0 0 4px rgba(255, 178, 94, .25), 0 0 18px 2px var(--a); }
+.line li.on::after { content: ""; position: absolute; width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(255, 178, 94, .6); animation: ping 2s var(--ease) infinite; pointer-events: none; }
+@keyframes ping { from { transform: scale(.5); opacity: 1; } to { transform: scale(1.6); opacity: 0; } }
+.line button:hover { transform: scale(1.5); }
+/* Hover a star to see what it is */
+.line button::after { content: attr(data-label); position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); padding: 6px 10px; border-radius: 8px; white-space: nowrap;
+  font: 500 12px var(--body); color: var(--ink); background: rgba(10, 12, 36, .85); border: 1px solid var(--line); opacity: 0; pointer-events: none; transition: opacity .2s; }
+.line li:hover button::after { opacity: 1; }
+
+/* Closing line, framed by the portal ring */
+.end { position: absolute; z-index: 2; inset: 0; display: grid; place-content: center; text-align: center; padding: 0 16px; opacity: 0; pointer-events: none; }
+.end.on { pointer-events: auto; }
+.end h2 { font-size: clamp(40px, 5.6vw, 92px); max-width: min(760px, 92vw); }   /* same size and wrap as Design 3's ending */
+.slot:empty { display: none; }
+
+/* Station map on the right edge */
+.map { position: absolute; z-index: 3; right: clamp(12px, 2vw, 32px); top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 4px; }
+.map button { display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 6px 0; border: 0; background: none; cursor: pointer;
+  font: 500 10px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); transition: color .3s; }
+.map button span { opacity: 0; transform: translateX(6px); transition: opacity .3s, transform .3s; }
+.map button:hover span, .map button.on span { opacity: 1; transform: none; }
+.map button i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; transition: background .3s, box-shadow .3s; }
+.map button.on { color: var(--ink); }
+.map button.on i { background: var(--a); box-shadow: 0 0 12px var(--a); }
+
+@media (max-width: 900px) { .map { display: none; } }
+@media (prefers-reduced-motion: reduce) { .intro .w, .cue { animation: none; } }
+
+/* Portal crossing: a warm flash that fills the screen as the camera passes through the ring (opacity from js/tour.js) */
+.flash { position: absolute; z-index: 6; inset: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(circle at 50% 52%, #f2f9ff 0%, #bfe3ff 22%, #5aaaff 48%, rgba(40, 100, 255, .55) 72%, rgba(6, 7, 26, .2) 100%); }
+.entering .flash { opacity: 1; }
+.cap h2.flip { animation: flip .5s var(--ease); }
+
+/* The diverging brain: signal labels, sub-signals and the two report cards */
+.u-layer { position: absolute; z-index: 2; inset: 0; pointer-events: none; overflow: hidden; }
+.u-m, .u-s { position: absolute; left: 0; top: 0; white-space: nowrap; opacity: 0; will-change: transform, opacity; }
+.u-m { font: 600 clamp(13px, 1.05vw, 17px) var(--disp); padding: 5px 13px; border-radius: 999px; border: 1.5px solid; background: rgba(8, 11, 30, .82); }
+.u-s { font: 500 clamp(11px, .85vw, 14px) var(--body); text-shadow: 0 0 8px #000, 0 0 3px #000; }
+.u-c { position: absolute; top: 56%; width: min(250px, 22vw); padding: 18px 20px; border-radius: 16px; opacity: 0;
+  background: rgba(10, 13, 34, .78); border: 1px solid var(--line); backdrop-filter: blur(10px); box-shadow: 0 18px 60px rgba(0, 0, 0, .5); }
+.u-c.l { left: clamp(16px, 5vw, 80px); } .u-c.r { right: clamp(16px, 5vw, 80px); }
+.u-c h4 { margin: 0 0 8px; font: 600 20px var(--disp); color: var(--a); }
+.u-c div { font: 500 15px var(--body); margin: 7px 0; color: var(--ink); }
+
+/* Header links and the end-screen button */
+.hbtn + .hbtn { margin-left: -8px; }
+.hbtn.ghost { background: none; }
+.end .btn.ghost { justify-self: center; margin-top: 30px; color: var(--ink); background: rgba(6, 7, 26, .45); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35); }
+/* Over the busy brain universe the caption sits on a soft dark band */
+.cap.scrim::before { content: ""; position: absolute; z-index: -1; left: 0; right: 0; top: -90px; height: calc(100% + 150px);
+  background: linear-gradient(rgba(4, 6, 13, .92) 55%, transparent); }
+
+/* Tour controls: bottom right. Back, Play/Pause, Next with the name of the next stop, and the stop count. */
+.navbar { position: absolute; z-index: 5; right: clamp(14px, 2.4vw, 36px); bottom: clamp(14px, 3vh, 30px); display: flex; align-items: center; gap: 8px;
+  padding: 6px; border-radius: 999px; background: rgba(8, 10, 30, .72); border: 1px solid var(--line); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.navbar button { border: 0; cursor: pointer; color: var(--ink); background: none; font: 500 14px var(--body); display: inline-flex; align-items: center; gap: 10px; border-radius: 999px; transition: background .25s, opacity .25s; }
+.navbar button:disabled { opacity: .3; cursor: default; }
+.navbar svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.navbar .prev { width: 40px; height: 40px; justify-content: center; }
+.navbar .prev:not(:disabled):hover { background: rgba(255, 255, 255, .08); }
+.navbar .play { height: 40px; padding: 0 16px 0 12px; box-shadow: inset 0 0 0 1px var(--line); }
+.navbar .play i { width: 0; height: 0; border: 6px solid transparent; border-left: 9px solid var(--a); border-right: 0; margin-left: 4px; }
+.navbar .play.on i { width: 10px; height: 12px; border: 0; border-left: 3px solid var(--a); border-right: 3px solid var(--a); margin-left: 0; }
+.navbar .next { height: 44px; padding: 0 14px 0 20px; color: #160c04; background: linear-gradient(95deg, var(--a), var(--b)); box-shadow: 0 10px 28px -10px rgba(255, 154, 77, .8); }
+.navbar .next:not(:disabled):hover { filter: brightness(1.06); }
+.navbar .nx { display: grid; text-align: left; line-height: 1.1; }
+.navbar .nx small { font: 500 10px var(--mono); letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+.navbar .nx b { font: 600 14px var(--body); max-width: 16em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.navbar .count { font: 500 11px var(--mono); letter-spacing: .1em; color: var(--soft); padding: 0 10px 0 4px; min-width: 64px; text-align: right; }
+/* The step rail sits bottom-centre; on narrower screens lift it above the controls */
+@media (max-width: 1200px) { .rail { bottom: 90px; } }
+
+/* ===== Controls, rebuilt (section by section + items inside a section) ===== */
+/* The line under the section title: the chosen item, then a short description */
+.cap .sub { display: flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: 4px 12px; }
+.cap .sub b { font: 600 clamp(16px, 1.3vw, 20px) var(--disp); letter-spacing: -.01em; color: var(--ink); }
+.cap .sub b em { font-size: 1.08em; }
+.cap .sub span { color: var(--soft); }
+
+/* Items: one slim pill under the showcase. ‹ name · dots · 03 / 12 › */
+.subnav { position: absolute; z-index: 4; left: 50%; bottom: clamp(18px, 3.4vh, 34px); transform: translateX(-50%); display: flex; align-items: center; gap: 6px;
+  padding: 6px; border-radius: 999px; background: rgba(8, 10, 30, .74); border: 1px solid var(--line); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  opacity: 0; visibility: hidden; transition: visibility 0s .3s; max-width: min(560px, 60vw); }
+.subnav.on { visibility: visible; transition: none; }
+.subnav button { width: 40px; height: 40px; flex: none; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--ink); background: rgba(255, 255, 255, .06); transition: background .2s, opacity .2s; }
+.subnav button:hover:not(:disabled) { background: rgba(110, 190, 255, .2); }
+.subnav button:disabled { opacity: .25; cursor: default; }
+.subnav svg, .navbar svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.s-mid { min-width: 0; padding: 0 10px; text-align: center; }
+.s-name { margin: 0; font: 500 14px var(--body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 40ch; }
+.s-name b { font: 500 10px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--teal); }
+.s-name[hidden] + .s-row { margin-top: 0; }
+.s-mid { padding: 0 14px; }
+.s-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 4px; }
+.s-dots { display: flex; gap: 5px; }
+.s-dots i { width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, .22); cursor: pointer; transition: width .3s var(--ease), background .3s; }
+.s-dots i.on { width: 16px; border-radius: 3px; background: #6cc4ff; }
+.s-count { font: 500 10px var(--mono); letter-spacing: .1em; color: var(--soft); }
+
+/* Sections: Back + Next, bottom right */
+.navbar { gap: 6px; }
+.navbar .next { height: 46px; }
+
+/* Section progress in the header: a thin segment per section; hover shows its name */
+.progress { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; gap: 4px; }
+.progress button { position: relative; width: clamp(18px, 2.2vw, 34px); height: 16px; padding: 0; border: 0; background: none; cursor: pointer; }
+.progress button::before { content: ""; position: absolute; left: 0; right: 0; top: 7px; height: 2px; border-radius: 2px; background: rgba(255, 255, 255, .18); transition: background .3s, box-shadow .3s; }
+.progress button.done::before { background: rgba(110, 190, 255, .55); }
+.progress button.on::before { background: #6cc4ff; box-shadow: 0 0 10px rgba(110, 190, 255, .8); }
+.progress button::after { content: attr(data-label); position: absolute; left: 50%; top: 22px; transform: translateX(-50%); white-space: nowrap; font: 500 12px var(--body); padding: 5px 9px; border-radius: 8px;
+  color: var(--ink); background: rgba(10, 12, 36, .9); border: 1px solid var(--line); opacity: 0; pointer-events: none; transition: opacity .2s; }
+.progress button:hover::after { opacity: 1; }
+@media (max-width: 1000px) { .progress { display: none; } .subnav { left: 16px; transform: none; max-width: calc(100% - 260px); } }
+.s-dots[hidden] { display: none; }
+.s-count { white-space: nowrap; }

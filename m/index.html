@@ -1,0 +1,164 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ZetaQ</title>
+<meta name="description" content="ZetaQ: adaptive quizzes and syllabus-aligned lessons that reshape themselves around each learner.">
+<script>
+// Big screens get the desktop page. ?mobile=1 keeps this one.
+if (matchMedia('(min-width: 761px)').matches && !/mobile=1/.test(location.search)) location.replace('../' + location.hash);
+</script>
+<link rel="icon" href="../assets/logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Inter:wght@400;500;600&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="m.css">
+</head><body class="home" data-tour="tour.html">
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  <!-- ZetaQ line pictographs: 24x24, 1.6 stroke, round caps. Use: <svg class="ic"><use href="#i-student"/></svg> -->
+  <symbol id="i-student" viewBox="0 0 24 24"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.6 2.7 3 6 3s6-1.4 6-3v-5"/><path d="M22 9v5"/></symbol>
+  <symbol id="i-teacher" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="11" rx="1.5"/><path d="M7 8.5h6M7 11.5h4"/><path d="M8 21l4-6 4 6"/></symbol>
+  <symbol id="i-parent" viewBox="0 0 24 24"><circle cx="8.5" cy="7" r="3"/><circle cx="17" cy="9.5" r="2.2"/><path d="M2.5 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M14.5 20c0-2.6 1.1-4.6 2.5-4.6s3 2 3 4.6"/></symbol>
+  <symbol id="i-school" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M10 21v-5h4v5"/><circle cx="12" cy="11" r="1.6"/></symbol>
+  <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10.2 9.2l4.8 2.8-4.8 2.8z"/></symbol>
+  <symbol id="i-notes" viewBox="0 0 24 24"><path d="M6 3h8.5L19 7.5V21H6z"/><path d="M14 3v5h5"/><path d="M9 12.5h7M9 16h5"/></symbol>
+  <symbol id="i-cube" viewBox="0 0 24 24"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></symbol>
+  <symbol id="i-quiz" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1.1.9-1.1 1.6v.4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-game" viewBox="0 0 24 24"><path d="M7 8h10a5 5 0 0 1 5 5v.5a3 3 0 0 1-5.4 1.8L15 13.5H9l-1.6 1.8A3 3 0 0 1 2 13.5V13a5 5 0 0 1 5-5z"/><path d="M7.5 10.2v3.2M5.9 11.8h3.2"/><path d="M15.8 11h.01M17.8 12.8h.01"/></symbol>
+  <symbol id="i-curiosity" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20.5 20.5l-5.2-5.2"/><path d="M10.5 7.5v.01M10.5 10v3.5"/></symbol>
+  <symbol id="i-engineering" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/><circle cx="12" cy="12" r="6.5"/></symbol>
+  <symbol id="i-chemistry" viewBox="0 0 24 24"><path d="M9 3h6"/><path d="M10 3v6.2L4.8 18.3A2 2 0 0 0 6.5 21.3h11a2 2 0 0 0 1.7-3L14 9.2V3"/><path d="M7.3 15h9.4"/></symbol>
+  <symbol id="i-physics" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.6"/><ellipse cx="12" cy="12" rx="9.5" ry="3.8"/><ellipse cx="12" cy="12" rx="9.5" ry="3.8" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9.5" ry="3.8" transform="rotate(-60 12 12)"/></symbol>
+  <symbol id="i-observatory" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><ellipse cx="12" cy="12" rx="10.5" ry="3.4" transform="rotate(-20 12 12)"/><path d="M19.5 3.5v.01M4 4.5v.01M20.5 19v.01"/></symbol>
+  <symbol id="i-creativity" viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1 0 1.6-.7 1.6-1.5 0-.9-.7-1.3-.7-2.2 0-.9.8-1.6 1.7-1.6H17a4 4 0 0 0 4-4C21 7.1 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.1"/><circle cx="10.5" cy="7.3" r="1.1"/><circle cx="15" cy="7.8" r="1.1"/></symbol>
+</svg>
+
+<header class="top">
+  <a class="brand" href="#top" aria-label="ZetaQ, back to the top"><img src="../assets/logo.webp" alt=""><span>ZetaQ</span></a>
+  <button class="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="menu"><i></i><i></i></button>
+</header>
+<nav class="menu" id="menu" aria-label="Site">
+  <a href="../tools.html">Tools</a><a href="../brain-test.html">Test your brain</a><a href="#videos">Videos</a>
+  <a href="../about.html">About</a><a href="../blog.html">Blog</a><a href="../contact.html">Contact</a>
+  <a href="tour.html#enter" data-portal>Explore the tour</a>
+</nav>
+
+<main id="top">
+  <section class="hero">
+    <canvas class="stars" aria-hidden="true"></canvas>
+    <p class="kick">ZetaQ · Personalised learning</p>
+    <h1>Thirty students. Thirty ways to learn. <em>One tutor that gets all of them.</em></h1>
+    <p class="sub">Adaptive quizzes and syllabus-aligned lessons that reshape themselves around each learner.</p>
+    <a class="eclipse" href="tour.html#enter" data-portal aria-label="Step inside the ZetaQ tour">
+      <span class="swirl"></span><span class="ring"></span><span class="enter"><b>Step inside</b></span>
+    </a>
+    <a class="tlink" href="tour.html#videos" data-portal>Watch the video lessons <span aria-hidden="true">→</span></a>
+  </section>
+
+  <section class="sec" id="goal">
+    <p class="num"><span>01</span>Our goal</p>
+    <h2>Built for the student who's ahead, <em>and the one who's behind.</em></h2>
+    <p class="lead">Every student learns differently. Finally, so does the quiz.</p>
+    <figure class="class" id="class" aria-label="Thirty students, each at a different point in the same chapter">
+      <figcaption><span>One class · 30 students</span><span>30 paths</span></figcaption>
+    </figure>
+    <ol class="points">
+      <li><h3>The quiz that learns the learner</h3><p>Each answer shapes the next question, so every student works at the right level.</p></li>
+      <li><h3>Same syllabus, different journey</h3><p>Every lesson follows the chapters your class is studying, at each student's own pace.</p></li>
+      <li><h3>Teaching made personal, at classroom scale</h3><p>One-to-one attention for every student, across the whole class.</p></li>
+    </ol>
+  </section>
+
+  <section class="sec" id="offer">
+    <p class="num"><span>02</span>Who it's for</p>
+    <h2>One platform, <em>for everyone around a learner.</em></h2>
+    <div class="who-tabs" role="tablist">
+      <button type="button" role="tab" aria-selected="true" data-i="0"><svg class="ic" aria-hidden="true"><use href="#i-student"/></svg>Students</button><button type="button" role="tab" aria-selected="false" data-i="1"><svg class="ic" aria-hidden="true"><use href="#i-teacher"/></svg>Teachers</button><button type="button" role="tab" aria-selected="false" data-i="2"><svg class="ic" aria-hidden="true"><use href="#i-parent"/></svg>Parents</button><button type="button" role="tab" aria-selected="false" data-i="3"><svg class="ic" aria-hidden="true"><use href="#i-school"/></svg>Schools</button>
+    </div>
+    <div class="who-panels">
+      <article>
+        <h3>Learn at your own pace, in your own way.</h3>
+        <ul>
+          <li>Quizzes that get harder when you're ready and easier when you're not</li>
+          <li>Lessons that follow your class syllabus, chapter by chapter</li>
+          <li>Practise anytime, without the fear of getting it wrong</li>
+          <li>Interactive video lessons that explain every chapter step by step</li>
+          <li>Lesson slides (PPTX) and summary PDFs to revise before every test</li>
+        </ul>
+        <a class="tlink" href="tour.html#students" data-portal>Explore for students <span aria-hidden="true">→</span></a>
+      </article>
+      <article hidden>
+        <h3>Reach every student, not just the front row.</h3>
+        <ul>
+          <li>Quizzes matched to the chapters you're teaching</li>
+          <li>Every student practises at their own level, in the same class</li>
+          <li>Spot who needs help before the test, not after</li>
+        </ul>
+        <a class="tlink" href="tour.html#teachers" data-portal>Explore for teachers <span aria-hidden="true">→</span></a>
+      </article>
+      <article hidden>
+        <h3>Know how your child is learning, not just their marks.</h3>
+        <ul>
+          <li>See which topics your child is strong in and where they need support</li>
+          <li>Practice that follows the school syllabus, so homework time counts</li>
+          <li>Safe, focused learning without random distractions</li>
+        </ul>
+        <a class="tlink" href="tour.html#parents" data-portal>Explore for parents <span aria-hidden="true">→</span></a>
+      </article>
+      <article hidden>
+        <h3>Personal learning for every classroom.</h3>
+        <ul>
+          <li>Adaptive quizzes and lessons aligned to your board and syllabus</li>
+          <li>One platform for every class, teacher and student</li>
+          <li>Built for schools and coaching centres of any size</li>
+        </ul>
+        <a class="tlink" href="tour.html#schools" data-portal>Explore for schools <span aria-hidden="true">→</span></a>
+      </article>
+    </div>
+    <div class="hubs">
+      <p class="hubs-k">Beyond the syllabus</p>
+      <ul><li><svg class="ic" aria-hidden="true"><use href="#i-curiosity"/></svg><b>Curiosity Hub</b><span>The human body, living cells and more, explored in 3D.</span></li><li><svg class="ic" aria-hidden="true"><use href="#i-engineering"/></svg><b>Engineering Lab</b><span>Build working machines, piece by piece.</span></li><li><svg class="ic" aria-hidden="true"><use href="#i-chemistry"/></svg><b>Chemistry Lab</b><span>Experiments you can run safely, again and again.</span></li><li><svg class="ic" aria-hidden="true"><use href="#i-physics"/></svg><b>Physics Lab</b><span>Bend light, wire circuits, test forces.</span></li><li><svg class="ic" aria-hidden="true"><use href="#i-observatory"/></svg><b>Virtual Observatory</b><span>Travel the solar system and watch the sky.</span></li><li><svg class="ic" aria-hidden="true"><use href="#i-creativity"/></svg><b>Creativity Hub</b><span>Build, colour and design your own creations.</span></li></ul>
+    </div>
+  </section>
+
+  <section class="sec" id="videos">
+    <p class="num"><span>03</span>Inside every chapter</p>
+    <h2>Every chapter, <em>five ways in.</em></h2>
+    <ol class="ways">
+      <li><svg class="ic" aria-hidden="true"><use href="#i-video"/></svg><b>Video lesson</b><i>Watch it</i></li>
+      <li><svg class="ic" aria-hidden="true"><use href="#i-notes"/></svg><b>Notes</b><i>Read it</i></li>
+      <li><svg class="ic" aria-hidden="true"><use href="#i-cube"/></svg><b>Interactive lesson</b><i>Step inside it</i></li>
+      <li><svg class="ic" aria-hidden="true"><use href="#i-quiz"/></svg><b>Adaptive quiz</b><i>Test it</i></li>
+      <li><svg class="ic" aria-hidden="true"><use href="#i-game"/></svg><b>Game</b><i>Play it</i></li>
+    </ol>
+    <a class="btn ghost wide" href="tour.html#videos" data-portal>Watch the video lessons <span aria-hidden="true">→</span></a>
+  </section>
+
+  <section class="sec" id="try">
+    <p class="num"><span>04</span>Try it yourself</p>
+    <a class="try-card" href="../brain-test.html"><p class="who">Test your brain</p><h3>Ten questions. <em>No single right answer.</em></h3><p>Ten short challenges, then your own brain report.</p><span class="tlink">Take the test <span aria-hidden="true">→</span></span></a>
+    <a class="try-card" href="../tools.html"><p class="who">Tools</p><h3>Two games and <em>a simulation.</em></h3><p>Free to play, right in your browser.</p><span class="tlink">Open the tools <span aria-hidden="true">→</span></span></a>
+  </section>
+
+  <section class="close">
+    <span class="halo" aria-hidden="true"></span>
+    <p class="kick">No two students alike</p>
+    <h2>Every student gets <em>their own path.</em></h2>
+    <p class="lead">See everything ZetaQ does for students, teachers and schools.</p>
+  </section>
+</main>
+
+<footer><span><b>ZetaQ</b> · The learning platform</span><span>www.zetaq.in</span></footer>
+
+<!-- Always within thumb reach -->
+<a class="dock" href="tour.html#enter" data-portal><span class="dot"></span>Explore ZetaQ</a>
+<div class="warp" aria-hidden="true"><span class="ring"></span></div>
+
+<script type="module" src="../js/home.js"></script>
+<script>
+// Menu, and the who-is-it-for tabs.
+const btn = document.querySelector('.menu-btn'), menu = document.getElementById('menu');
+btn.addEventListener('click', () => { const o = btn.getAttribute('aria-expanded') !== 'true'; btn.setAttribute('aria-expanded', o); menu.classList.toggle('open', o); });
+menu.addEventListener('click', (e) => { if (e.target.closest('a')) { btn.setAttribute('aria-expanded', false); menu.classList.remove('open'); } });
+const dock = document.querySelector('.dock'), ecl = document.querySelector('.hero .eclipse');
+new IntersectionObserver(([e]) => dock.classList.toggle('on', !e.isIntersecting && e.boundingClientRect.top < 0)).observe(ecl);
+const tabs = [...document.querySelectorAll('.who-tabs button')], panels = [...document.querySelectorAll('.who-panels article')];
+tabs.forEach((t) => t.addEventListener('click', () => { tabs.forEach((x) => x.setAttribute('aria-selected', x === t)); panels.forEach((p, i) => { p.hidden = i !== +t.dataset.i; }); }));
+</script>
+</body></html>

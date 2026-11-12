@@ -1,0 +1,42 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>ZetaQ Tour</title>
+<script>
+// Big screens get the 3D tour. ?mobile=1 keeps this one. (Desktops without WebGL are sent here, and stay.)
+if (matchMedia('(min-width: 761px)').matches && !/mobile=1/.test(location.search) && !/nogl=1/.test(location.search)) location.replace('../tour/' + location.hash);
+if (location.hash && location.hash !== '#top') document.documentElement.classList.add('entering');
+</script>
+<link rel="icon" href="../assets/logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Inter:wght@400;500;600&family=Instrument+Serif:ital@1&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="m.css">
+</head><body class="tour">
+<canvas class="stars fixed" aria-hidden="true"></canvas>
+<header class="top">
+  <a class="brand" href="./" aria-label="ZetaQ home"><img src="../assets/logo.webp" alt=""><span>ZetaQ</span></a>
+  <span class="spy" id="spy"></span>
+  <a class="pill ghost" href="./">Home</a>
+</header>
+
+<main>
+  <!-- The opening: swipe up and you go through the eclipse -->
+  <section class="portal" id="portal">
+    <div class="portal-in">
+      <div class="eclipse big"><span class="swirl"></span><span class="ring"></span></div>
+      <div class="portal-text">
+        <p class="kick">AI-powered personalised learning</p>
+        <h1>Learning, shaped to <em>every mind.</em></h1>
+        <p class="lede">Nobody left behind. Nobody held back.</p>
+      </div>
+      <p class="cue">Swipe up to step through</p>
+    </div>
+  </section>
+  <div id="stations"></div>
+</main>
+
+<nav class="dots" aria-label="Stations on the tour"></nav>
+<div class="mnav" role="group" aria-label="Tour controls">
+  <button class="prev" type="button" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <button class="next" type="button"><span class="nx"><small>Next</small><b class="nx-l">Students</b></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+</div>
+<div class="flash" aria-hidden="true"></div>
+<script type="module" src="tour.js"></script>
+</body></html>

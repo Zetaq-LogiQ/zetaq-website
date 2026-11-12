@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b1020">
+<style>html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%}</style>
+<title>Word Blaster</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Lexend:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Deep-space arcade: words fall like comets onto a glowing planet; a turret on the horizon; a slim HUD on top; glass cards for menus. */
+:root {
+  --space: #050816; --panel: rgba(14, 18, 48, .78); --line: rgba(150, 170, 255, .22);
+  --ink: #f2f4ff; --muted: #a3abdc; --laser: #49f2ff; --hit: #ffcf3f; --good: #4fe39a; --bad: #ff5d73; --violet: #9b6bff;
+  --title: 'Bungee', 'Arial Black', system-ui, sans-serif;
+  --word: 'Lexend', 'Segoe UI', system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { background: var(--space); color: var(--ink); font: 16px/1.45 var(--word); -webkit-user-select: none; user-select: none; }
+button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid var(--laser); outline-offset: 2px; }
+#game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: crosshair; }
+
+/* HUD: score left, level in the middle, lives and buttons right */
+.hud { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); top: max(12px, env(safe-area-inset-top, 0px)); display: grid; grid-template-columns: 1fr minmax(0, 420px) 1fr; align-items: start; gap: 12px; pointer-events: none; }
+.pill { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 7px 14px; backdrop-filter: blur(10px); box-shadow: 0 8px 30px rgba(0, 0, 0, .35); }
+.left { justify-self: start; display: flex; gap: 10px; align-items: center; }
+.score { font: 24px/1 var(--title); letter-spacing: .5px; text-shadow: 0 0 18px rgba(73, 242, 255, .45); }
+.score small { display: block; font: 700 10px var(--word); letter-spacing: 1.4px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; text-shadow: none; }
+.combo { font: 15px var(--title); color: #2a1a00; background: linear-gradient(180deg, #ffe27a, #ffb21e); border-radius: 12px; padding: 7px 11px; box-shadow: 0 0 22px rgba(255, 190, 40, .5); }
+.lvl { text-align: center; }
+.lvl .t { display: flex; justify-content: center; align-items: baseline; gap: 8px; }
+.lvl b { font: 14px var(--title); color: var(--hit); letter-spacing: .5px; }
+.lvl span { font-size: 13px; color: var(--muted); }
+.bar { height: 8px; border-radius: 5px; background: rgba(255, 255, 255, .08); margin-top: 7px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(0, 0, 0, .5); }
+.bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--violet), var(--laser), var(--good)); border-radius: 5px; transition: width .3s; box-shadow: 0 0 12px rgba(73, 242, 255, .7); }
+.right { justify-self: end; display: flex; gap: 8px; align-items: center; }
+.hearts { display: flex; gap: 3px; padding: 9px 11px; }
+.hearts svg { width: 20px; height: 20px; }
+.hearts .on path { fill: #ff4d6d; filter: drop-shadow(0 0 5px rgba(255, 77, 109, .8)); }
+.hearts .off path { fill: rgba(255, 255, 255, .12); }
+.icon { pointer-events: auto; width: 44px; height: 44px; border-radius: 14px; border: 1px solid var(--line); background: var(--panel); display: grid; place-items: center; backdrop-filter: blur(10px); }
+.icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* menus */
+.card { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(580px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: auto; background: linear-gradient(180deg, rgba(26, 30, 80, .82), rgba(12, 14, 40, .9)); border: 1px solid rgba(150, 170, 255, .3); border-radius: 28px; padding: 28px 26px 24px; box-shadow: 0 30px 90px rgba(0, 0, 0, .6), 0 0 0 1px rgba(73, 242, 255, .08), inset 0 1px 0 rgba(255, 255, 255, .08); backdrop-filter: blur(14px); text-align: center; }
+.card h1 { margin: 0; font: clamp(38px, 9vw, 62px)/0.95 var(--title); letter-spacing: 1px; background: linear-gradient(180deg, #ffffff 10%, #8ff7ff 55%, #9b6bff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 22px rgba(73, 242, 255, .35)); }
+.card h2 { margin: 0 0 6px; font: 30px/1.1 var(--title); }
+.card p { margin: 12px auto 0; max-width: 46ch; color: #d2d7fa; }
+.how { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 20px 0 6px; text-align: left; }
+.how div { background: rgba(255, 255, 255, .05); border: 1px solid var(--line); border-radius: 16px; padding: 11px 12px; font-size: 13.5px; color: #cfd4f7; }
+.how b { display: block; font: 13px var(--title); margin-bottom: 4px; }
+.how .r b { color: var(--bad); } .how .g b { color: var(--good); } .how .y b { color: var(--hit); }
+.levels { display: grid; gap: 9px; margin-top: 18px; }
+.lvbtn { display: flex; align-items: center; gap: 14px; text-align: left; padding: 12px 16px; border-radius: 18px; border: 1px solid var(--line); background: rgba(255, 255, 255, .05); transition: transform .12s, border-color .12s, background .12s; }
+.lvbtn:hover { border-color: var(--laser); background: rgba(73, 242, 255, .08); transform: translateY(-1px); }
+.lvbtn .n { flex: none; width: 46px; height: 46px; border-radius: 14px; display: grid; place-items: center; font: 22px var(--title); color: #05101c; }
+.lvbtn:nth-child(1) .n { background: linear-gradient(180deg, #8ff7ff, #26c6da); }
+.lvbtn:nth-child(2) .n { background: linear-gradient(180deg, #c7a8ff, #7c4dff); }
+.lvbtn:nth-child(3) .n { background: linear-gradient(180deg, #ffe27a, #ff9f1c); }
+.lvbtn b { display: block; font-size: 17px; } .lvbtn small { color: var(--muted); font-size: 13px; }
+.big { margin-top: 18px; height: 56px; padding: 0 34px; border-radius: 18px; border: 0; background: linear-gradient(180deg, #8ff7ff, #26c6da); color: #04202a; font: 18px var(--title); letter-spacing: .5px; box-shadow: 0 10px 30px rgba(38, 198, 218, .4); }
+.ghost { margin-top: 10px; height: 44px; padding: 0 20px; border-radius: 14px; border: 1px solid var(--line); background: transparent; color: var(--muted); font-weight: 600; }
+.stats { display: flex; justify-content: center; gap: 26px; margin-top: 16px; }
+.stats div { font: 30px var(--title); } .stats small { display: block; font: 700 11px var(--word); color: var(--muted); letter-spacing: 1.2px; text-transform: uppercase; }
+.practice { margin-top: 18px; text-align: left; }
+.practice h3 { margin: 0 0 8px; font: 14px var(--title); color: var(--hit); }
+.practice ul { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px; }
+.practice li { background: rgba(255, 255, 255, .05); border: 1px solid var(--line); border-radius: 12px; padding: 7px 10px; font-size: 15px; }
+.practice li s { color: var(--bad); text-decoration-thickness: 2px; } .practice li b { color: var(--good); }
+@media (max-width: 640px) {
+  .hud { grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; }
+  .score { font-size: 19px; } .combo { display: none; }
+  .lvl span { display: none; }
+  .hearts { padding: 8px; gap: 1px; } .hearts svg { width: 15px; height: 15px; }
+  .icon { width: 38px; height: 38px; }
+  .right .icon:first-of-type { display: none; }
+  .how { grid-template-columns: 1fr; }
+  .card { padding: 22px 16px 18px; }
+}
+@media (prefers-reduced-motion: reduce) { .bar i, .lvbtn { transition: none; } }
+</style>
+<style>.zq-back{position:fixed;z-index:2147483000;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;font:600 13px/1 system-ui,-apple-system,"Segoe UI",sans-serif;color:#f4f5fb;text-decoration:none;background:rgba(6,7,26,.72);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.zq-back:hover{box-shadow:inset 0 0 0 1px #ffb25e}</style>
+</head>
+<body>
+<canvas id="game" aria-label="Word Blaster game area. Tap the words that are spelled wrong."></canvas>
+<div class="hud" id="hud" hidden>
+  <div class="left"><div class="pill score"><small>Score</small><span id="score">0</span></div><div class="combo" id="combo" hidden></div></div>
+  <div class="pill lvl"><div class="t"><b id="lvlName"></b><span id="lvlSub"></span></div><div class="bar"><i id="bar"></i></div></div>
+  <div class="right">
+    <div class="pill hearts" id="hearts" aria-label="Lives"></div>
+    <button class="icon" id="sound" aria-label="Sound on" aria-pressed="true"></button>
+    <button class="icon" id="pause" aria-label="Pause"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
+  </div>
+</div>
+
+<section class="card" id="start">
+  <h1>Word<br>Blaster</h1>
+  <p>Words are falling from space and some are spelled wrong. Blast the wrong ones before they land on the planet!</p>
+  <div class="how">
+    <div class="r"><b>Spelled wrong?</b>Tap it to blast it. Longer words score more.</div>
+    <div class="g"><b>Spelled right?</b>Let it land. Blasting it costs a life.</div>
+    <div class="y"><b>Streak</b>Blast in a row to multiply your points.</div>
+  </div>
+  <div class="levels" id="levels"></div>
+</section>
+
+<section class="card" id="pauseCard" hidden>
+  <h2>Paused</h2>
+  <button class="big" id="resume">Keep playing</button><br>
+  <button class="ghost" id="quit">End game</button>
+</section>
+
+<section class="card" id="over" hidden>
+  <h2 id="overTitle">Game over</h2>
+  <div class="stats"><div><small>Score</small><span id="fScore"></span></div><div><small>Best</small><span id="fBest"></span></div><div><small>Blasted</small><span id="fHits"></span></div></div>
+  <div class="practice" id="practice"></div>
+  <button class="big" id="again">Play again</button><br>
+  <button class="ghost" id="menu">Choose level</button>
+</section>
+
+<script>
+(() => {
+  'use strict';
+  const WORDS = {"L1":[["about","abowt"],["following","folowing"],["unit","unet"],["their","thier"],["things","thinges"],["people","peple"],["other","othr"],["information","informasion"],["water","watter"],["something","somthing"],["should","shoud"],["back","bak"],["mother","muther"],["answer","anser"],["after","affter"],["three","thre"],["present","pressent"],["sentences","sentenses"],["questions","qustions"],["through","throgh"],["place","plase"],["tree","trea"],["before","befor"],["friends","freinds"],["school","scool"],["years","yeers"],["different","diferent"],["began","begen"],["little","litle"],["once","onse"],["because","becuase"],["money","muney"],["person","persen"],["carefully","carefuly"],["sentence","sentance"],["around","arround"],["animals","animels"],["examples","exampels"],["example","exampel"],["points","pionts"],["women","wimen"],["discuss","diskuss"],["language","langauge"],["understand","undestand"],["meaning","meening"],["please","plese"],["again","agian"],["stories","storys"],["facilitator","facilitater"],["need","nead"],["right","rigt"],["heart","haert"],["called","caled"],["friend","freind"],["happy","hapy"],["listen","lisen"],["forest","forist"],["speech","speach"],["letter","leter"],["learners","lerners"],["means","meens"],["sister","sistar"],["important","importent"],["country","contry"],["never","nevver"],["children","childern"],["correct","corect"],["another","anuther"],["sounds","sownds"],["without","witout"],["while","whil"],["future","futur"],["speak","speek"],["written","writen"],["collect","colect"],["student","studant"],["special","spesial"],["year","yeer"],["farmer","farmar"],["complete","compleet"],["scurry","scury"],["keep","keap"],["journey","journy"],["feel","fele"],["today","todey"],["traditional","traditonal"],["music","musik"],["internet","intenet"],["learn","lern"],["imagine","imagin"],["field","feild"],["teacher","techer"],["ground","grownd"],["father","fathar"],["whether","wheather"],["night","nigt"],["online","onlin"],["choose","chooze"],["idea","idia"],["science","sience"],["computer","computar"],["tourists","turists"],["strength","strenght"],["looking","loking"],["activities","activitys"],["groups","groops"],["being","bieng"],["later","laiter"],["upon","uppon"],["writing","writting"],["parents","parants"],["clean","cleen"],["encourage","encorage"],["heard","heared"],["beautiful","beutiful"],["prepare","prepair"],["face","fase"],["together","togather"],["interesting","intresting"],["simple","simpel"],["explain","explane"],["garbage","garbege"],["became","becaim"],["mindfulness","mindfullness"],["provide","provid"],["remember","remeber"],["least","leest"],["someone","somone"],["difficult","dificult"],["practice","practis"],["classroom","clasroom"],["bright","brigt"],["scientist","sceintist"],["independence","independance"],["thought","thougt"],["describe","discribe"],["table","tabel"],["phrases","phrazes"],["speaker","speeker"],["hear","haer"],["strawberries","strawberies"],["moment","momant"],["become","becom"],["adjectives","ajectives"],["hundred","hundered"],["characters","charecters"],["websites","websits"],["article","articel"],["create","creat"],["quickly","quikly"],["leave","leeve"],["area","arrea"],["proper","propper"],["surprise","suprise"],["actions","actoins"],["family","familly"],["scarecrow","scarcrow"],["designs","desins"],["covered","coverd"],["husband","husbend"],["looked","lookt"],["watch","wach"],["conversation","conversasion"],["afraid","afrade"],["flowers","flowres"],["everyone","evryone"],["national","nationel"],["fear","feer"],["habits","habbits"],["funny","funy"],["picture","picure"],["usually","usualy"],["education","educasion"],["various","varius"],["across","accross"],["suddenly","sudenly"],["doctor","docter"],["heavy","hevy"],["space","spase"],["modern","modren"],["offline","ofline"],["action","acsion"],["ancient","anceint"],["phrase","phraze"],["straight","stright"],["deep","deap"],["change","chainge"],["plastic","plastik"],["courage","corage"],["consonant","consonent"],["tomorrow","tomorow"],["identify","indentify"],["really","realy"],["apple","appel"],["everything","evrything"],["brother","bruther"],["under","undar"],["activity","activety"],["events","evants"],["himself","himslef"],["famous","famus"],["open","oppen"],["clothes","cloathes"],["address","adress"],["uncle","uncel"],["visit","vizit"],["adverbs","advurbs"],["brought","brougth"],["message","mesage"],["title","titel"],["mean","meen"],["faster","fastar"],["mathematics","mathmatics"],["woman","wuman"],["nature","natur"],["library","libary"],["nation","naition"],["cannot","canot"],["wanted","wantid"],["inside","insid"],["related","relaited"],["suitable","suitible"],["meaningful","meaningfull"],["blanks","blankes"],["question","qustion"],["stepmother","stepmuther"],["green","grean"],["possible","possable"],["started","startted"],["adjective","ajective"],["evening","evning"],["near","neer"],["musical","musicle"],["number","nomber"],["marathon","marathan"],["website","websight"],["magazines","magzines"],["refers","reffers"],["stress","stres"],["fairies","fairys"],["progressive","progresive"],["ghosts","gosts"],["potato","potatoe"],["include","inclued"],["paper","papper"],["above","abov"],["silver","silvar"],["twelve","twelv"],["distance","distence"],["filled","filld"],["announcement","anouncement"],["yourself","yoursef"],["cause","cuase"],["enter","entar"],["report","riport"],["observe","obzerve"],["imaginary","imaginery"],["either","eather"],["passed","pased"],["return","retern"],["lesson","leson"],["qualities","qualitys"],["arrange","arange"],["newspaper","newpaper"],["litter","littar"],["sorry","sory"],["success","sucess"],["guests","guestes"],["behind","behined"],["review","reveiw"],["black","blak"],["stands","standz"],["especially","especialy"],["sleeping","sleaping"],["freedom","freedum"],["equality","equallity"],["interview","interveiw"],["mirror","miror"],["century","centuary"],["happens","hapens"],["between","betwean"],["attention","atention"],["better","beter"],["broken","brocken"],["whole","whol"],["discussion","discustion"],["violets","voilets"],["nodded","noded"],["among","amoung"],["highlighted","higlighted"],["happily","hapily"],["instead","insted"],["against","agianst"],["manner","maner"],["intonation","intonasion"],["sudden","suden"],["plants","plents"],["yesterday","yesturday"],["adverb","advurb"],["informal","informel"],["quick","quik"],["research","reserch"],["achievements","acheivements"],["order","ordar"],["exercise","excercise"],["shorter","shortar"],["pronoun","pronown"],["happier","hapier"],["sleep","sleap"],["history","histroy"],["jungle","jungel"],["riddle","riddel"],["enough","enogh"],["plenty","plenti"],["lovely","lovley"],["decide","deside"],["picked","pickt"],["difference","differance"],["plural","plurel"],["polite","pollite"],["sometimes","somtimes"],["thinking","thinkng"],["reason","reeson"],["human","humman"],["towards","towerds"],["spread","spred"],["though","thogh"],["tried","tryed"],["second","seccond"],["search","serch"],["occasion","ocasion"],["soldier","soldiar"],["necessary","necesary"],["mention","mension"],["feelings","fealings"],["course","cource"],["middle","middel"],["common","comon"],["rewrite","rerite"],["garden","gardan"],["useful","usefull"],["statement","statment"],["reduce","reduse"],["column","colum"],["movie","moovie"],["slowly","slowley"],["hurry","hury"],["environment","enviroment"],["design","desine"],["festival","festivel"],["since","sinse"],["topic","toppic"],["alliteration","aliteration"],["poster","postar"],["focus","fokus"],["minister","ministar"],["simile","simily"],["scientific","sientific"],["laughed","laffed"],["suffix","sufix"],["happiness","happyness"],["opinion","oppinion"],["fried","freid"],["landslide","lanslide"],["metaphor","metafor"],["recite","recight"],["running","runing"],["stick","stik"],["begin","begine"],["passage","pasage"],["available","availible"],["turned","turnd"],["mountain","mountian"],["seat","seet"],["minute","minit"],["nice","nise"],["finished","finnished"],["however","howver"],["changing","changeing"],["dangerous","dangerus"],["comfortable","comfertable"],["thousand","thousend"],["itself","itslef"],["immediately","immediatly"],["teeth","tieth"],["honest","honist"],["getting","geting"],["respect","rispect"],["relatives","relitives"],["agree","aggree"],["free","frea"],["taken","takken"],["certain","certin"],["outside","outsid"],["street","stret"],["injured","injurd"],["surroundings","suroundings"],["beginning","begining"],["unhappy","unhapy"],["weed","wead"],["matter","mattar"],["cried","cryed"],["technology","tecnology"],["system","sistem"],["physical","phisical"],["voice","voise"],["battle","batle"],["travel","travle"],["purpose","perpose"],["singular","singuler"],["happening","hapening"],["poetic","poettic"],["reap","reep"],["smiled","smild"],["specific","spesific"],["natural","natral"],["showed","showd"],["express","expres"],["record","recurd"],["repetition","repitition"],["studying","studing"],["educational","educasional"],["cabin","cabbin"],["sheep","sheap"],["superheroes","supperheroes"],["chance","chanse"],["happened","hapened"],["beans","beens"],["stopped","stoped"],["shouted","showted"],["pencil","pensil"],["problem","probelm"],["expressions","expresions"],["clouds","clowds"],["quietly","quitely"],["frightened","frightend"],["growing","groing"],["wondered","wonderd"],["delicious","delicous"],["piece","peice"],["members","membars"],["orally","oraly"],["notice","notise"],["building","bilding"],["major","majer"],["hockey","hockie"],["players","plaiers"],["medal","medel"],["presentation","presentasion"],["therefore","therfore"],["personal","personnal"],["nobody","nobudy"],["sack","sak"],["clever","clevver"],["bought","bougth"],["golden","goldin"],["tears","teares"],["adventures","advenchures"],["almost","allmost"],["longer","longger"],["rubbish","rubish"],["happen","hapen"],["clear","cleere"],["super","supar"],["village","villege"],["adventure","advencher"],["believe","beleive"],["forgot","forgott"],["invitation","invitasion"],["served","servd"],["remove","remuve"],["reach","reech"],["crossed","crosed"],["cowardly","cowerdly"],["suppose","supose"],["power","powar"],["develop","devlop"],["source","sourse"],["inspired","inspird"],["successful","sucessful"],["incident","incidant"],["states","staites"],["government","goverment"],["diagram","daigram"],["meant","ment"],["result","rezult"],["control","controll"],["patterns","paterns"],["particular","particuler"],["paragraph","paragraf"],["underline","underlin"],["dictionary","dictionery"],["nearby","neerby"],["challenges","chalenges"],["emotions","emosions"],["breathing","breething"],["concepts","consepts"],["material","matirial"],["explore","explor"],["leather","lether"],["development","developement"],["digital","dijital"],["conduct","condukt"],["studied","studyed"],["instrument","instrumant"],["serpent","serpant"],["disaster","dissaster"],["trifles","triffles"],["stopping","stoping"],["rushed","rusht"],["floor","floar"],["wander","wandar"],["raised","raized"],["scream","screem"],["concept","consept"],["fruits","frutes"],["daughter","doughter"],["gentle","gentel"],["caught","cought"],["hunger","hungar"],["youngest","youngist"],["pick","pik"],["themselves","themselfs"],["annoyed","anoyed"],["belongs","belonges"],["support","suport"],["equally","equaly"],["played","playd"],["easily","easyly"],["higher","higer"],["celebrated","celibrated"],["label","lable"],["proudly","proudley"],["bottle","bottel"],["nearly","neerly"],["worried","worryed"],["laugh","laff"],["worked","workt"],["twenty","twinty"],["seek","seak"],["seeing","seing"],["strange","strainge"],["seemed","seemd"],["quiet","queit"],["bravery","bravary"],["greatest","greetest"],["pulled","pulld"],["office","ofice"],["peacock","peacok"],["squirrel","squirel"],["somebody","sombody"],["anyone","anyon"],["difficulties","dificulties"],["delight","delite"],["intelligent","inteligent"],["swallow","swalow"],["river","rivar"],["wonderful","wonderfull"],["account","acount"],["breath","breth"],["yellow","yelow"],["beasts","beests"],["tigers","tigars"],["walked","walkt"],["fight","fite"],["flowing","floing"],["inventions","invensions"],["overcome","overcum"],["inspiring","inspireing"],["kitten","kiten"],["leaving","leaveing"],["centuries","centurys"],["countries","countrys"],["printed","printted"],["autobiography","autobiografy"],["goldfish","golfish"],["ocean","ocian"],["determined","determind"],["lotus","lotous"],["region","reigon"],["device","divice"],["figure","figer"],["danger","danjer"],["worry","wory"],["everyday","everday"],["awareness","awarness"],["importance","importence"],["showing","shoing"],["joined","joind"],["teaches","teachs"],["moral","morral"],["workshop","workshup"],["laziness","lazyness"],["hollow","holow"],["hidden","hiden"],["equal","equel"],["society","socity"],["opportunities","oportunities"],["earliest","earlyest"],["scheme","skeme"],["inspire","inspier"],["teasing","teaseing"],["magic","magik"],["libraries","libaries"],["rainfall","rainfal"],["biography","biografy"],["podcast","podkast"],["videos","videoes"],["corner","cornor"],["antics","antiks"],["understood","understod"],["dream","dreem"],["passing","pasing"],["correctly","corectly"],["listener","listner"],["politely","politly"],["stream","streem"],["cooking","coocking"],["stones","stoans"],["younger","yunger"],["bringing","bringging"],["single","singel"],["winter","wintar"],["pushed","pusht"],["anywhere","anywere"],["permission","permision"],["thick","thik"],["fence","fense"],["several","sevral"],["entire","entier"],["further","furthur"],["gathered","gatherd"],["scored","scord"],["captain","captian"],["amazing","amazeing"],["selfish","selfesh"],["pounced","pounsed"],["although","allthough"],["offer","ofer"],["allowed","alowed"],["insect","insekt"],["appetite","apetite"],["smile","smyle"],["advance","advanse"],["properly","propperly"],["shadows","shaddows"],["classify","clasify"],["remain","remane"],["promise","promice"],["indeed","indead"],["arrows","arows"],["danced","dansed"],["queen","qween"],["greatly","greatley"],["seashore","seeshore"],["delivered","deliverd"],["waiting","waitting"],["hawker","hawkar"],["driver","drivar"],["rabbit","rabit"],["bleeding","bleading"],["request","reqest"],["unbelievable","unbelievible"],["bicycle","bycycle"],["terrible","terible"],["teaching","teeching"],["follow","folow"],["splash","splesh"],["stanza","stansa"],["planet","plannet"],["essay","essey"],["features","feachures"],["edge","egde"],["describing","discribing"],["bigger","biger"],["effort","efort"],["preposition","preposision"],["consider","concider"],["treasure","tresure"],["thoughtful","thoughtfull"],["decorate","decerate"],["friendly","freindly"],["rocks","roks"],["whispered","whisperd"],["bodies","bodys"],["terribly","teribly"],["myself","mysilf"],["landed","landded"],["drawing","drawring"],["universe","univers"],["secret","secrit"],["studies","studys"],["central","centrel"],["repeated","repeted"],["detail","detial"],["photograph","photograf"],["shining","shineing"],["shrill","shril"],["access","acess"],["within","withen"],["patience","patiense"],["memory","memery"],["carried","carryed"],["service","servise"],["connected","conected"],["smaller","smaler"],["subject","subjict"],["unique","uniqe"],["password","pasword"],["healthy","helthy"],["diet","deit"],["beloved","belovd"],["taught","tought"],["university","univercity"],["college","colledge"],["helped","helpt"],["beauty","beuty"],["wooden","wodden"],["quality","quallity"],["alphabet","alfabet"],["definite","definate"],["conjunction","conjuntion"],["coffee","cofee"],["animal","animel"],["ability","abilty"],["added","aded"],["suggest","sugest"],["survey","survay"],["reliable","relyable"],["respond","respont"],["health","helth"],["female","femail"],["punctuation","punctuasion"],["tourist","tourest"],["appropriate","apropriate"],["brackets","brakets"],["rearrange","rearange"],["format","formet"],["loudly","loudley"],["poverty","povarty"],["social","socail"],["progress","progres"],["grandfather","granfather"],["compassion","compasion"],["comfort","comfert"],["despite","dispite"],["awards","awerds"],["inspiration","inspirasion"],["homophones","homofones"],["warriors","wariors"],["situation","situasion"],["maker","makker"],["humorous","humourous"],["mathematical","mathamatical"],["originated","origenated"],["triangular","trianguler"],["strike","strik"],["heritage","heritige"],["sighed","sighd"],["culture","culcher"],["squawked","squaked"],["whimpered","wimpered"],["popular","populer"],["dance","dence"],["style","styl"],["traditions","tradisions"],["reward","rewerd"],["gravity","gravety"],["discovered","discoverd"],["feed","fead"],["earthen","earthan"],["aside","asside"],["market","markit"],["exclaimed","exclamed"],["greedy","gready"],["cucumbers","cucumers"],["railway","railwey"],["unfamiliar","unfamilier"],["context","contex"],["reader","reeder"],["cream","creem"],["eaten","eatan"],["stepdaughter","stepdoughter"],["cottage","cotage"],["herself","herselve"],["weeping","weaping"],["bitterly","biterly"],["footprint","footprent"],["silent","silant"],["springtime","springtyme"],["commanded","comanded"],["thanked","thankt"],["merrily","merryly"],["bushes","bushs"],["tasted","taisted"],["wicked","wiked"],["waited","waitted"],["season","seeson"],["collection","colection"],["football","futball"],["method","methed"],["victory","victery"],["stadium","stadiam"],["exactly","exacly"],["passes","pases"],["barefoot","bearfoot"],["position","posision"],["trick","trik"],["project","projeck"],["personality","personallity"],["clearly","cleerly"],["responses","responces"],["creature","creture"],["eldest","eldist"],["accept","acept"],["elder","eldar"],["priest","preist"],["opposites","oposites"],["process","proccess"],["sequence","sequance"],["measure","mesure"],["character","charactor"],["strings","stringes"],["meal","meel"],["horses","horces"],["catch","cach"],["carrying","carying"],["climb","clim"],["largest","largist"],["houses","houzes"],["standing","standding"],["gather","gether"],["fetch","fech"],["mystery","mistery"],["meeting","meating"],["separately","seperately"],["enact","ennact"],["slogans","slogens"],["pollution","polution"],["exclamation","exclaimation"],["pretty","prety"],["sweetly","sweatly"],["welcome","wellcome"],["period","periad"],["condition","condision"],["helpful","helpfull"],["merchant","merchent"],["kingdom","kindom"],["difficulty","dificulty"],["harder","hardar"],["excited","exsited"],["decorations","decorasions"],["introduce","introduse"],["participate","particapate"],["donkey","donky"],["actually","actualy"],["choosing","chooseing"],["expression","expresion"],["beast","beest"],["rested","restted"],["safely","safly"],["tipped","tiped"],["surely","shurely"],["damage","dammage"],["candles","candels"],["global","globel"],["issues","isues"],["literally","literaly"],["author","auther"],["attractive","atractive"],["motivate","motivait"],["collective","colective"],["regular","reguler"],["breeze","breaze"],["fragrance","fragrence"],["smells","smels"],["senses","sences"],["square","sqare"],["mistake","misteak"],["suggestion","sugestion"],["decision","decission"],["belong","belonge"],["confused","confuzed"],["scenes","senes"],["compared","compaired"],["generations","genarations"],["speed","spead"],["mission","mision"],["produce","produse"],["easier","easyer"],["homework","homwork"],["instructions","instuctions"],["wonder","wunder"],["engine","enjine"],["receiving","recieving"],["communication","comunication"],["proverb","provurb"],["puzzles","puzles"],["player","playar"],["unable","unabel"],["differ","difer"],["fingers","fingures"],["struggle","strugle"],["patient","pacient"],["examination","examinasion"],["pleasing","pleesing"],["powder","pouder"],["mainly","mainley"],["pattern","patern"],["public","publik"],["adding","ading"],["items","itams"],["refer","reffer"],["biggest","bigest"],["indefinite","indefinate"],["general","genaral"],["elephant","elefant"],["represents","reprasents"],["bulletin","buletin"],["radio","radeo"],["counted","cownted"],["movement","movment"],["buckle","buckel"],["exciting","exsiting"],["families","familys"],["tonight","tonite"],["examine","examin"],["alternative","alternitive"],["benefits","benifits"],["meditation","meditasion"],["improve","improove"],["gender","gendar"],["cotton","cotten"],["rubber","ruber"],["peace","peece"],["whatever","watever"],["admired","admierd"],["memories","memorys"],["amazed","amased"],["according","acording"],["honey","huney"],["convey","convay"],["magical","magicle"],["glee","glea"],["kindness","kindnes"],["repeat","repete"],["woodcutter","woodcuter"],["fortune","forchune"],["wealth","welth"],["perform","perfom"],["teach","teech"],["formed","formd"],["celebrate","celibrate"],["freely","freley"],["confident","confedent"],["confidence","confidense"],["harmony","harmany"],["affordable","affordible"],["innovation","inovation"],["cultural","culteral"],["imperative","imperitive"],["exclamatory","exclamitory"],["interrogative","interogative"],["fighter","fiter"],["ginger","ginjer"],["deeply","deaply"],["illness","ilness"],["prevent","prevant"],["childhood","childhod"],["medium","meadium"],["values","valuse"],["spotted","spoted"],["introduction","introducsion"],["discoveries","discoverys"],["solutions","solusions"],["shivered","shiverd"],["scared","scaired"],["fasten","fasen"],["direction","derection"],["shaking","shakeing"],["yelled","yeled"],["sneak","sneek"],["pitched","piched"],["dustbin","dusbin"],["soccer","socer"],["chapter","chaptar"],["enjoys","enjoyes"],["triangles","triangels"],["graceful","graseful"],["glided","glidded"],["coconut","cocanut"],["embraced","embrased"],["banquets","banquits"],["adaptation","adaptasion"],["perfect","purfect"],["ancestors","ansestors"],["spices","spises"],["robust","robost"],["comic","comik"],["accident","acident"],["television","telivision"],["determination","determanation"],["neat","neet"],["forgotten","forgoten"],["craftsmen","craftmen"],["carved","carvd"],["crossword","crosword"],["squeaked","squeeked"],["sniffed","snifed"],["burrow","burow"],["dropped","droped"],["librarian","librarien"],["updated","updatted"],["darkness","darknes"],["historical","historicle"],["pasture","pascher"],["cleverness","clevernes"],["invented","invinted"],["educate","edukate"],["butter","buter"],["ghee","ghea"],["astounded","astownded"],["wielding","weilding"],["notebook","notebuk"],["commotion","commosion"],["daydream","daydreem"],["occur","ocur"],["disagree","dissagree"],["finish","finesh"],["thirsty","thursty"],["sweeter","sweter"],["beside","biside"],["faraway","farraway"],["trembling","trembeling"],["highest","highist"],["joyfully","joyfuly"],["scampered","scamperd"],["overjoyed","overjoied"],["opposite","oposite"],["summer","summar"],["blossoms","blosoms"],["carpet","carpit"],["twice","twise"],["death","deth"],["ourselves","ourselfs"],["readily","redily"],["wrapped","wraped"],["shawls","shauls"],["stepped","steped"],["angrily","angryly"],["brings","bringes"],["neither","niether"],["cleanliness","cleanlyness"],["silently","silentley"],["construction","construcsion"],["extend","extand"],["injury","injery"],["cycle","cycel"],["contact","contakt"],["finals","finels"],["perhaps","prehaps"],["ruler","rular"],["rained","raned"],["logged","loged"],["pressure","presure"],["cheer","chear"],["strategy","stratergy"],["resolved","rezolved"],["allowing","alowing"],["proved","prooved"],["fruitless","frutless"],["defeat","defeet"],["rough","rouf"],["goalkeeper","goalkeaper"],["winners","winnars"],["awarded","awaded"],["writer","writter"],["ordinary","ordinery"],["stayed","stayd"],["swimming","swiming"],["onions","onyons"],["stuffing","stufing"],["skills","skils"],["putting","puting"],["categories","catagories"],["preparation","preperation"],["unless","unles"],["purrs","purs"],["truthfully","truthfuly"],["confess","confes"],["purple","purpel"],["forgive","forgiv"],["affection","afection"],["wisely","wisly"],["exchanged","exchainged"],["paddy","pady"],["businessman","buisnessman"],["interest","intrest"],["whenever","wenever"],["sharing","shareing"],["voyages","voyajes"],["sailed","saild"],["gestures","gesturs"],["joining","joinning"],["thrown","throwen"],["church","cherch"],["convinced","convinsed"],["tied","teid"],["imagining","imagineing"],["including","includeing"],["honestly","honestley"],["housewife","houswife"],["overnight","overnite"],["expect","expekt"],["dispose","dispoze"],["responsible","responsable"],["unsafe","unsaif"],["suffer","sufer"],["chemicals","chemicles"],["poisons","poisens"],["polluted","poluted"],["command","comand"],["generation","genaration"],["issue","isue"],["repair","repare"],["recycle","recycel"],["shines","shynes"],["cluster","clustar"],["flutter","fluter"],["setting","seting"],["elements","elemants"],["dinosaur","dinosor"],["fantasy","fantacy"],["fiction","ficsion"],["smooth","smoth"],["ripples","riples"],["lilies","lillies"],["floating","flowting"],["fishes","fishs"],["gleam","gleem"],["kingfisher","kingfishar"],["painting","paintting"],["rapidly","rappidly"],["wishes","wishs"],["indulge","indulje"],["scolding","skolding"],["beating","beeting"],["seedling","seadling"],["uproot","uprout"],["otherwise","otherwice"],["twisting","twistting"],["implements","impliments"],["tiger","tigar"],["lovingly","loveingly"],["invite","invight"],["forget","forgit"],["arrive","arive"],["chairs","chiars"],["whispers","wispers"],["goodbye","goodbey"],["personally","personnally"],["attend","atend"],["expensive","expencive"],["approach","aproach"],["dewdrops","dudrops"],["sunny","suny"],["bees","beez"],["clover","clovar"],["eventful","eventfull"],["bottom","botom"],["steep","steap"],["cyclone","cyclon"],["brains","braines"],["brick","brik"],["noises","noizes"],["killed","kiled"],["attempt","atempt"],["crouched","crowched"],["leap","leep"],["serious","serius"],["horror","horrer"],["toward","towerd"],["relief","releif"],["anxious","anxius"],["afternoon","afternon"],["swiftly","swiftley"],["welfare","wellfare"],["triumph","triumf"],["poetry","poetery"],["appear","apear"],["observations","observasions"],["scene","scean"],["imagination","imagenation"],["skipper","skiper"],["container","contaner"],["channels","chanels"],["channel","channle"],["unfair","unfare"],["generous","generus"],["runner","runer"],["response","responce"],["attack","attak"],["legend","legand"],["legendary","legendery"],["skilled","skiled"],["weapons","wepons"],["precious","presious"],["copper","copar"],["careful","carefull"],["textbooks","texbooks"],["flowering","flowring"],["weary","weery"],["dreary","dreery"],["network","netwerk"],["images","imajes"],["stored","stord"],["view","veiw"],["screen","screan"],["browsing","browzing"],["lock","lok"],["citizens","citisens"],["electronic","electronik"],["antonyms","antonims"],["seeds","seads"],["invent","invant"],["digit","dijit"],["reverse","reverce"],["puzzle","puzle"],["degree","degre"],["consists","consits"],["finely","finly"],["households","housholds"],["courtyard","cortyard"],["feature","feacher"],["magnificent","magnificant"],["feasts","feests"],["shapes","shaips"],["nowadays","nowdays"],["coarse","coarce"],["grained","graned"],["customary","customery"],["background","bakground"],["characteristic","charecteristic"],["beautify","beautyfy"],["fragrant","fragrent"],["contain","contian"],["glossary","glossery"],["frightening","fritening"],["emotion","emosion"],["vacation","vacasion"],["anger","angar"],["countable","countible"],["flower","flowar"],["section","secsion"],["starts","startes"],["raining","rainning"],["force","forse"],["tenses","tenzes"],["closing","closeing"],["calculations","calculasions"],["commence","comence"],["cracking","craking"],["decrease","decreese"],["holiday","holliday"],["uniform","uneform"],["series","sereis"],["disturbed","disterbed"],["cutting","cuting"],["priority","priorty"],["preferable","preferible"],["recent","rescent"],["increasing","increesing"],["causing","causeing"],["anxiety","anxity"],["mental","mentel"],["tastes","tasts"],["traffic","trafic"],["powerful","powerfull"],["improving","improveing"],["application","aplication"],["emergency","emergancy"],["touched","tuched"],["justice","justise"],["quotation","quotasion"],["double","dubble"],["motherland","mutherland"],["foreigners","foriegners"],["informed","infomed"],["treated","treatted"],["dusted","dustted"],["spoken","spokan"],["wearing","wareing"],["connects","conects"],["video","vidio"],["protest","protast"],["district","distric"],["truthful","truthfull"],["midnight","midnite"],["hogging","hoging"],["active","activ"],["hospital","hospitle"],["bead","beed"],["trickled","trikled"],["humming","huming"],["melodious","melodius"],["liquid","likwid"],["forever","forevar"],["steady","steddy"],["continuous","continous"],["professionals","proffesionals"],["cobbler","cobler"],["vowels","vowles"],["ample","ampel"],["twilight","twilite"],["gossiping","gossipping"],["horizon","horizen"],["barren","barran"],["tempted","temted"],["pleasantly","plesantly"],["repentance","repentence"],["strongly","strongley"],["management","managment"],["citizen","citizan"],["groceries","grocerys"],["leaders","leeders"],["amount","ammount"],["treating","treeting"],["assertive","asertive"],["remedy","remidy"],["legged","leged"],["knee","knea"],["surgery","surjery"],["treat","treet"],["anatomy","anatamy"],["diagnosis","dignosis"],["treatment","treatement"],["ethics","ethiks"],["structure","structer"],["journals","jurnals"],["prefix","preffix"],["sorrow","sorow"],["grief","greif"],["soothe","sothe"],["option","opsion"],["streetlight","streetlite"],["mentor","menter"],["polymer","polimer"],["unforgettable","unforgetable"],["fellow","felow"],["signed","sighned"],["inclusive","inclucive"],["creative","creeative"],["abroad","abrod"],["discover","discuver"],["entertainment","entertainmant"],["adults","addults"],["increase","increese"],["rustle","rustel"],["kidding","kiding"],["rattled","ratled"],["squirmed","squermed"],["asleep","asleap"],["groaned","groned"],["playful","playfull"],["seal","seel"],["banana","bannana"],["waterfall","watterfall"],["crystal","cristal"],["perfume","purfume"],["horrible","horrable"],["aquatic","acquatic"],["barrel","barel"],["swirling","swirlling"],["trouble","truble"],["reducing","reduceing"],["sparkle","sparkel"],["throws","throwes"],["campaign","campain"],["extract","extrakt"],["storeroom","storoom"],["sounded","sownded"],["patches","paches"],["fluffy","flufy"],["skinny","skiny"],["station","stasion"],["local","lokal"],["antonym","antonim"],["fewer","fewar"],["supreme","supreem"],["thumbs","thums"],["swayed","swayd"],["spied","spyed"],["swooped","swoopped"],["birthplace","birthplase"],["algebra","algibra"],["verses","verces"],["textbook","texbook"],["rupees","rupies"],["audio","awdio"],["snack","snak"],["tracing","traceing"],["humble","humbel"],["migration","migrasion"],["triangle","triangel"],["pastries","pastrys"],["stuffed","stufed"],["minced","minsed"],["delicacy","delicasy"],["tuber","tubar"],["versatile","versatil"],["theory","theroy"],["identity","identaty"],["sprawling","sprauling"],["chutney","chutny"],["palindromes","palindroms"],["earthquake","erthquake"],["lashed","lashd"],["downpour","downpoor"],["disrupted","disrubted"],["normal","normel"],["location","locasion"],["rescue","reskew"],["submerged","submurged"],["inconvenience","inconvinience"],["authorities","authoritys"],["highlights","highlits"],["twisters","twisturs"],["lorry","lorrey"],["verbal","verbel"],["relentless","relentles"],["resilience","resiliance"],["pinnacle","pinacle"],["javelin","javilin"],["recently","resently"],["beacon","beecon"],["unbreakable","unbreakible"],["medical","medicle"],["outstanding","owtstanding"],["positive","posetive"],["elderly","elderley"],["prayer","praier"],["lightly","litely"],["fruitful","frutful"],["disown","dissown"],["insolent","insolant"],["surrender","surender"],["metal","metel"],["drawer","drawar"],["amazement","amazment"]],"L2":[["prince","prinse"],["camel","cammel"],["principal","principel"],["object","objekt"],["vulture","vulcher"],["clause","clawse"],["window","windoe"],["courtiers","courteirs"],["vision","vission"],["pilgrim","pilgrem"],["leopard","lepard"],["statue","statchue"],["headed","heded"],["assistant","assistent"],["indirect","indirrect"],["negative","negetive"],["formal","formel"],["chief","cheif"],["cellar","celar"],["direct","dirrect"],["closed","closd"],["surgical","surgicle"],["attitude","atitude"],["scholar","scholer"],["frigate","frigat"],["sweeper","sweaper"],["peasant","peasent"],["surgeon","surgion"],["earrings","earrigns"],["artists","artests"],["affirmative","afirmative"],["mathematician","mathmatician"],["refuse","refuze"],["master","mastar"],["tennis","tenis"],["criminals","crimminals"],["violin","voilin"],["finite","finnite"],["temple","tempel"],["cardiac","cardiak"],["comparison","comparision"],["muscles","musles"],["parody","parrody"],["break","braek"],["thanks","thankes"],["synonyms","synonims"],["criminal","crimminal"],["beggars","beggers"],["potted","poted"],["anagrams","annagrams"],["dinner","dinnar"],["desert","desart"],["mankind","mankynd"],["settlements","setlements"],["tunnel","tunel"],["crocodile","crocodial"],["international","internasional"],["electricity","electrisity"],["compete","compeet"],["fallen","falen"],["unusual","unusal"],["advertisement","advertisment"],["modal","moddal"],["previous","previus"],["vocation","vocasion"],["foreign","foriegn"],["robotic","robotik"],["genius","genious"],["certainly","certanly"],["challenge","chalenge"],["beneath","beneeth"],["unknown","unkown"],["specially","specialy"],["butterflies","butterflys"],["choice","choise"],["editor","editer"],["starting","startting"],["mummy","mumy"],["excellent","excellant"],["grandmother","granmother"],["compound","compownd"],["earlier","erlier"],["scale","scail"],["complex","compleks"],["shoulders","sholders"],["demonstration","demonstrasion"],["electric","electrik"],["transitive","tranzitive"],["intransitive","intranzitive"],["magnet","magnit"],["pleasure","plesure"],["potential","potencial"],["distribution","distrubution"],["complement","complemant"],["weeks","weekes"],["digging","diging"],["detective","ditective"],["palace","palase"],["bridge","brige"],["growth","groth"],["profession","profesion"],["watchman","wachman"],["heaven","heven"],["masterpiece","masterpeice"],["neurosurgery","nuerosurgery"],["mighty","mitey"],["jumped","jumpt"],["inauguration","inaguration"],["closer","closser"],["shuttle","shutle"],["settlement","settelment"],["precautions","precausions"],["gravitational","gravitasional"],["achieve","acheive"],["thread","thred"],["talent","talant"],["balance","balanse"],["basic","basik"],["posture","postur"],["stretched","streched"],["rather","rarther"],["officer","oficer"],["harpoon","harpoun"],["lecture","lectur"],["secretary","secratary"],["career","carreer"],["experiment","experement"],["complicated","complecated"],["failure","failer"],["revolutionary","revolutionery"],["convert","convirt"],["sheet","sheete"],["gadgets","gadjets"],["predicate","predicat"],["implied","implyed"],["exotic","exotik"],["festive","festiv"],["merry","mearry"],["banyan","banyen"],["probably","probaly"],["escape","excape"],["belief","beleif"],["compose","compoze"],["auxiliary","auxilary"],["enjoyed","enjoied"],["script","skript"],["laughter","lafter"],["shutters","shuters"],["jewels","jewles"],["archaic","arcaic"],["marked","markd"],["struck","struk"],["colony","collony"],["stolen","stolan"],["obsessed","obsesed"],["robot","robbot"],["incisions","incissions"],["manuscript","manusript"],["bundle","bundel"],["scripture","scripcher"],["smiling","smileing"],["silence","silance"],["appearance","apearance"],["classmates","clasmates"],["judge","jugde"],["usual","usal"],["protection","protecsion"],["former","formar"],["venue","venu"],["assembly","asembly"],["inaugurate","inagurate"],["nerves","nervs"],["carriage","cariage"],["driving","driveing"],["painted","paintted"],["assured","asured"],["daylight","dailight"],["brighter","brigter"],["ignored","ignord"],["eagerly","eagarly"],["dejected","dijected"],["spending","spendding"],["kitchen","kichen"],["wished","wishd"],["enthusiasm","enthusiam"],["jackets","jakets"],["announce","anounce"],["motion","mosion"],["spiritual","spiritul"],["involving","involveing"],["breakfast","brekfast"],["touching","tuching"],["palette","palete"],["inhale","inhail"],["routine","routeen"],["adverbial","adverbiel"],["motionless","mosionless"],["chasing","chaseing"],["monster","monstar"],["renowned","reknowned"],["electrical","electricle"],["controlled","controled"],["motor","moter"],["significant","significent"],["failed","faild"],["filings","fileings"],["equations","equasions"],["consonance","consonence"],["renown","reknown"],["dignitaries","dignataries"],["fantastic","fantastik"],["declare","declair"],["celebration","celebrasion"],["likely","likly"],["fascinated","facinated"],["habit","habbit"],["debate","debait"],["chatter","chater"],["candidates","canditates"],["highly","higly"],["protect","protekt"],["political","politicle"],["merits","merrits"],["mouths","mouthes"],["scattered","scatered"],["continue","continu"],["pullover","pulover"],["parcel","parsel"],["aspect","aspekt"],["missed","missd"],["recover","recuver"],["elected","ellected"],["balsam","balsem"],["contest","contist"],["healthier","helthier"],["bounds","bownds"],["deter","detter"],["witty","wity"],["bangles","bangels"],["gardener","gardenar"],["profile","profil"],["operation","opperation"],["thief","theif"],["procedures","proceedures"],["successfully","sucessfully"],["operating","opperating"],["fraud","frawd"],["outwit","outwitt"],["accent","acent"],["pronunciation","pronounciation"],["silken","silkin"],["arrangement","arrangment"],["messenger","messanger"],["ahead","ahed"],["sketch","skech"],["sample","sampel"],["preside","prezide"],["charge","chardge"],["telephone","telefone"],["receptionist","receptionest"],["cover","covver"],["inspirational","inspirasional"],["brief","breif"],["exhibition","exibition"],["cattle","cattel"],["rhythmic","rythmic"],["revolution","revolusion"],["captured","capturd"],["camera","cammera"],["atmosphere","atmosfere"],["circus","circas"],["oldest","oldist"],["cheaper","cheapper"],["pointed","pionted"],["timetable","timetabel"],["cities","citys"],["select","selekt"],["flock","flok"],["classes","clases"],["slight","sligt"],["pause","pawse"],["courtier","courtiar"],["scholarly","scholerly"],["manage","mannage"],["intelligence","inteligence"],["velvet","velvit"],["creating","createing"],["classified","clasified"],["abstract","abstrakt"],["cheerful","cheerfull"],["integrated","intigrated"],["flexibility","flexability"],["emulate","emmulate"],["outdoors","outdores"],["strengthens","strenghtens"],["breathe","breethe"],["explosion","explotion"],["directly","directley"],["neutral","nuetral"],["release","releese"],["thigh","thie"],["couple","cuple"],["playground","playgrownd"],["stunned","stuned"],["narrator","narator"],["loaded","loded"],["dreadful","dredful"],["pierce","pierse"],["disappointment","disapointment"],["rolled","roled"],["equipment","equiptment"],["engineer","enginer"],["mingled","mingeled"],["stronger","strongger"],["launched","lawnched"],["sailing","sailling"],["obsession","obsesion"],["engrossed","engrosed"],["model","modle"],["status","statas"],["solved","solvd"],["induction","inducsion"],["celebrity","celebrety"],["impossible","imposible"],["laboratory","labratory"],["desire","desier"],["valley","vally"],["artist","artest"],["audience","audiense"],["regards","reguards"],["painter","paintar"],["demonstrated","demonstraited"],["relieved","releived"],["curtain","curtian"],["administration","adminstration"],["restless","restliss"],["toothbrushes","toothbrushs"],["toothbrush","tothbrush"],["monitor","moniter"],["bicker","bickar"],["thirty","thurty"],["glance","glanse"],["alliterative","aliterative"],["institute","institude"],["climate","climat"],["followers","folowers"],["utter","uter"],["remarked","remarkd"],["unspoken","unspokken"],["unkind","unkynd"],["friendship","freindship"],["aback","abback"],["summary","sumary"],["weather","weether"],["cousin","cusin"],["seventeen","seventean"],["nonsense","nonsence"],["lights","ligts"],["flashed","flasht"],["rounds","rownds"],["pounds","pownds"],["apply","aply"],["association","assosiation"],["absence","absense"],["advise","advize"],["planned","plannd"],["revolver","revolvar"],["narrow","narow"],["branch","branche"],["total","tottal"],["homonyms","homonims"],["throughout","throghout"],["armchair","armchare"],["satisfaction","satisfacsion"],["except","exept"],["miserable","miserible"],["stranger","strainger"],["acrostic","acrostik"],["shock","shok"],["miracles","miricles"],["angels","angils"],["unfriendly","unfreindly"],["attic","atic"],["astonished","astonised"],["helpless","helples"],["threat","thret"],["pitfall","pitfal"],["slightly","sligtly"],["surmise","surmize"],["ridicule","redicule"],["react","reackt"],["praise","praize"],["combine","conbine"],["lantern","lanturn"],["paraphrase","parafrase"],["shared","shaired"],["pioneer","pioner"],["violence","violance"],["replace","replase"],["greeting","greating"],["invaded","invaided"],["function","funtion"],["current","curent"],["reflect","reflekt"],["mobile","mobille"],["revealed","reveiled"],["lonely","lonley"],["wisdom","wisdum"],["fashioned","fashoned"],["looted","lootted"],["reliant","relient"],["remote","remoat"],["daytime","daitime"],["beggar","begger"],["servants","servents"],["spellings","spelings"],["police","polise"],["ladder","lader"],["narrative","narative"],["quarter","quater"],["thrice","thrise"],["prayed","prayd"],["skies","skys"],["haggling","hagling"],["struggling","strugling"],["pneumonia","pnuemonia"],["wielded","weilded"],["nervous","nervouse"],["omniscient","omnisceint"],["ankle","ankel"],["ordinate","ordinite"],["sedatives","sedetives"],["survive","servive"],["defects","deffects"],["mortality","mortallity"],["operate","opperate"],["valves","valvs"],["console","consolle"],["magistrate","majistrate"],["porters","portors"],["theorems","theorums"],["irritated","iritated"],["altered","alterred"],["clarity","clearity"],["insight","insite"],["amiable","amiabel"],["conveyance","conveyence"],["defiance","defience"],["exiled","exilled"],["predicament","predicamant"],["tight","tite"],["diffident","difident"],["benign","benine"],["palanquin","palanquine"],["mournfully","mournfuly"],["flowery","flowary"],["cloudless","cloudles"],["dazzling","dazling"],["nineteenth","ninteenth"],["imaginative","imaginitive"],["settling","setling"],["mimicked","mimiced"],["insufferable","insufferible"],["giggled","gigled"],["appreciation","apreciation"],["atrocious","atrocius"],["participants","participents"],["snidely","snidly"],["beautifully","beautifuly"],["clapping","claping"],["cheerfully","cheerfuly"],["befriended","befreinded"],["stylish","stilish"],["individually","individualy"],["behave","behaive"],["weaknesses","weaknesess"],["grasses","grases"],["roadway","roadwey"],["effect","efect"],["activist","activest"],["bodyguard","bodygaurd"],["loyalty","loyality"],["shelter","sheltar"],["enjoying","enjoing"],["emerge","emmerge"],["unexpected","unexspected"],["fable","fabel"],["uncountable","uncountible"],["copies","copys"],["communicate","comunicate"],["specimens","specimans"],["quotes","qoutes"],["philosophy","philosofy"],["regarded","reguarded"],["charging","chargeing"],["troops","troups"],["whistle","whisle"],["remind","remaind"],["exorbitantly","exorbitently"],["longest","longist"],["panorama","panarama"],["physically","physicaly"],["gradually","gradualy"],["shaped","shapped"],["escorted","escourted"],["entrance","entrence"],["fifteen","fiveteen"],["thirteen","thirtean"],["seventy","sevinty"],["attraction","atraction"],["spectators","spectaters"],["repeatedly","repeatidly"],["translated","transalated"],["interjection","interjecsion"],["connect","conect"],["click","clik"],["erudition","erudision"],["rejected","rejekted"],["chores","choars"],["borrowed","borowed"],["quench","quensh"],["sagacious","sagacius"],["astute","astoot"],["keeper","keaper"],["deserve","desserve"],["advantage","adventage"],["conviction","convicsion"],["passion","pasion"],["fabrics","fabricks"],["brocade","brokade"],["merit","merrit"],["concrete","concreet"],["composite","composit"],["experts","expurts"],["vibrant","vibrent"],["advisable","advisible"],["involve","invollve"],["energy","energie"],["resembles","resembels"],["smoothly","smoothely"],["vertebra","vertibra"],["assume","asume"],["muscle","mussle"],["pointing","pointting"],["forehead","forhead"],["exhale","exale"],["stretch","strech"],["encouraging","encourageing"],["eagle","eagel"],["joints","jionts"],["maintain","maintane"],["quadriceps","quadriseps"],["cricket","criket"],["approval","aproval"],["circle","circel"],["luminous","luminus"],["fearsome","fearsum"],["foolish","foollish"],["defend","difend"],["slowed","slowd"],["tremendous","tremendus"],["louder","lowder"],["whale","whail"],["launch","lanch"],["content","contant"],["weapon","weppon"],["outcome","outcom"],["impatiently","impatiantly"],["latter","lattar"],["steam","steem"],["nearer","nearrer"],["obvious","obvius"],["trembled","trembeled"],["excitement","excitment"],["cetacean","cetasean"],["cannon","cannun"],["gunner","guner"],["target","targit"],["surface","surfase"],["profound","profund"],["substance","substence"],["enormous","enormus"],["distinguished","distingished"],["inventors","inventers"],["pronounce","pronounse"],["fascination","facination"],["ticket","tiket"],["chemist","chemest"],["institution","instetution"],["lighting","liteing"],["applied","aplied"],["continuously","continuosly"],["mechanical","mechanicle"],["achievement","acheivement"],["discovery","discovry"],["generator","generater"],["disease","desease"],["closely","closly"],["greater","greator"],["hence","hense"],["physicist","phisicist"],["throne","throan"],["haunt","hawnt"],["dreamy","dreemy"],["summon","sumon"],["arrival","arival"],["likened","likend"],["divides","devides"],["prestigious","prestigous"],["introductory","introductry"],["appraise","apraise"],["vocal","vocle"],["rendition","rendision"],["comedy","commedy"],["insert","insurt"],["affected","afected"],["dropping","droping"],["occasional","ocasional"],["carrion","carion"],["shifted","shiftted"],["spectacles","spectacels"],["knocked","knoked"],["engaging","engageing"],["cupboard","cupbord"],["unfortunate","unfortunite"],["bandaged","bandeged"],["buried","burried"],["represented","reprisented"],["frequent","frequant"],["ridges","ridjes"],["babble","bable"],["pebbles","pebbels"],["skimming","skiming"],["netted","neted"],["illustrations","illustrasions"],["invigilators","invigilaters"],["published","publised"],["budget","buget"],["analysis","analisis"],["overpopulation","overpopulasion"],["epidemic","epedemic"],["destroy","distroy"],["colonies","colonys"],["carries","carrys"],["packet","paket"],["required","requiered"],["clipping","cliping"],["funnels","funnles"],["whereas","wheras"],["veracity","verasity"],["carelessly","carelesly"],["transmitters","transmiters"],["untruth","untrooth"],["unpleasant","unplesant"],["benefit","benifit"],["guided","guidded"],["remark","remmark"],["enemy","enimy"],["strict","strickt"],["berries","beries"],["worries","worrys"],["knitted","knited"],["totally","totaly"],["desperately","desperatly"],["chanting","chantting"],["rejoice","rejoyce"],["fabulous","fabulus"],["seriously","seriosly"],["eleven","elevan"],["gifted","giftted"],["salary","salery"],["hobby","hobbey"],["suited","suted"],["dissolved","disolved"],["conclusion","conclution"],["possibility","possiblity"],["pavement","pavment"],["trousers","trowsers"],["companion","companian"],["foiled","foild"],["wrinkled","wrinkeled"],["outlines","outlins"],["thieves","theives"],["elsewhere","elsewere"],["inform","infourm"],["residents","residants"],["brightened","brightend"],["begun","beggun"],["splendid","splended"],["visitor","visiter"],["sadness","sadnes"],["pinched","pintched"],["hurried","huried"],["clock","clok"],["locality","localety"],["homeless","homles"],["thesaurus","thesarus"],["generally","generaly"],["cherish","cherrish"],["nurturing","nurtering"],["innocence","innocense"],["supernatural","supernaturel"],["providing","provideing"],["decorative","decoritive"],["personalities","personalitys"],["hardships","hardshipps"],["youngsters","youngsterz"],["giraffe","girafe"],["parrot","parot"],["surprising","suprising"],["nightfall","nightfal"],["dealing","deeling"],["luckily","luckyly"],["plague","plauge"],["household","housold"],["voyage","voyege"],["normally","normaly"],["bargaining","bargening"],["strongest","strongist"],["setbacks","setbaks"],["dramatic","dramatick"],["sunset","sunsit"],["impact","impakt"],["stunted","stunnted"],["confirm","conferm"],["brightly","britely"],["mauve","mauv"],["distant","distent"],["competitor","competiter"],["submitted","submited"],["convince","convinse"],["applauded","applawded"],["appeals","apeals"],["anagram","anagrum"],["fourth","fouth"],["maximum","maximun"],["winner","winnar"],["individual","indivisual"],["finger","fingur"],["shadow","shaddow"],["tweet","tweat"],["final","finel"],["occupation","occupasion"],["retirement","retirment"],["scolds","scoldes"],["uniformity","uniformaty"],["blooms","bloomes"],["nestles","nestels"],["incense","insense"],["presses","preses"],["discriminate","descriminate"],["shares","shairs"],["religion","religon"],["laments","lamants"],["inequality","inequallity"],["subjugated","subjigated"],["writes","writtes"],["fountain","fountian"],["glorified","glorifyed"],["testify","testyfy"],["narrated","narated"],["evidence","evidance"],["proves","prooves"],["legal","leagal"],["declaration","declairation"],["dimensions","dimentions"],["economic","econimic"],["elimination","elimenation"],["affirm","afirm"],["rushes","rushs"],["organisms","organisims"],["instance","instence"],["ecological","ecologicle"],["significance","significanse"],["scornful","scornfull"],["deride","deried"],["authority","athority"],["oneself","onself"],["limited","limitted"],["globally","globaly"],["missile","missle"],["validated","validatted"],["conquered","conqured"],["nurture","nurcher"],["controlling","controling"],["drawbacks","drawbaks"],["sustaining","sustaning"],["producer","produser"],["media","meadia"],["reliance","relience"],["bombardments","bombardmants"],["transformed","tranformed"],["granary","granery"],["imported","importted"],["proclaim","proclame"],["seamen","seemen"],["located","locatted"],["bruised","brused"],["solution","solusion"],["minimum","minimun"],["pyramid","pyrimid"],["proclamation","proclaimation"],["solemn","solem"],["bestowed","bestoed"],["aghast","agast"],["hapless","haples"],["claimant","claiment"],["horrified","horified"],["shunned","shuned"],["bravely","brevely"],["wrangled","wrangeled"],["avoided","avoidid"],["dried","dryed"],["beckon","bekon"],["obeyed","obayed"],["sacred","sacrid"],["chosen","choosen"],["festivity","festivety"],["coincides","coinsides"],["harassed","harrassed"],["invention","invension"],["driven","drivin"],["terraces","teraces"],["fussy","fusy"],["delicacies","delicasies"],["demonstrate","demenstrate"],["illuminated","iluminated"],["brilliance","brillance"],["native","naitive"],["improvement","improvment"],["gnarled","gnarlled"],["decayed","decaid"],["skeleton","skeliton"],["clinging","clingging"],["fever","feaver"],["upstairs","upstares"],["tinted","tintid"],["larger","larjer"],["enrich","enritch"],["veterinarian","vetinarian"],["competent","competant"],["exceedingly","exeedingly"],["ducks","duks"],["chickens","chikens"],["centipede","centepede"],["virulent","virulant"],["stirred","stired"],["necks","neckes"],["buffalo","bufalo"],["curious","curius"],["consult","consalt"],["appliances","appliences"],["stole","stoal"],["essential","essencial"],["extraction","extracsion"],["dramatically","dramaticly"],["neurosurgeons","neurosurgens"],["mounted","mountid"],["precision","precission"],["magnified","magnifyed"],["concerned","conserned"],["minimally","minimaly"],["invasive","invassive"],["definition","defenition"],["procedure","proceedure"],["replicated","replecated"],["transport","transpurt"],["venture","vencher"],["pillage","pilage"],["kneading","kneeding"],["burdens","burdans"],["delivering","delivring"],["mason","masen"],["civilian","civillian"],["nectar","necter"],["image","immage"],["phonetic","phonatic"],["transcriptions","transcripsions"],["contrivances","contrivences"],["untidy","untydy"],["envelope","envalope"],["nagged","naged"],["theological","theologicle"],["doctrine","doctrin"],["startling","startleing"],["benevolence","benevolance"],["indulgence","indulgance"],["unorthodox","unorthadox"],["goddess","godess"],["baffling","bafling"],["sentimental","sentamental"],["ironic","ironick"],["initiated","inisiated"],["brilliant","briliant"],["jester","jestor"],["empire","empier"],["protocol","protocal"],["revered","reverred"],["sesame","sessame"],["crisis","crysis"],["glorious","glorius"],["infinity","infinaty"],["thrilling","thriling"],["shrugged","shruged"],["grimaced","grimased"],["beamed","beemed"],["rudely","rudly"],["offended","ofended"],["flushed","flushd"],["uncharitably","uncharitebly"],["countered","countred"],["sharply","sharpley"],["participating","particapating"],["plaits","plaites"],["trained","traned"],["absolute","absolut"],["abundantly","abundently"],["studious","studeous"],["nimble","nimbel"],["respectful","respecful"],["stubbornly","stubornly"],["mocked","moked"],["mercilessly","mercilesly"],["somehow","somhow"],["retort","retorte"],["horrid","horid"],["subdued","subdewed"],["emphatic","emphattic"],["dictionaries","dictionarys"],["capital","capitel"],["rainbow","rainbo"],["landscape","landskape"],["basis","bassis"],["monsoon","monsune"],["spontaneous","spontanious"],["watchful","wachful"],["opposed","oposed"],["roared","rored"],["flight","fligt"],["wiser","wizer"],["cooler","cooller"],["farther","farthar"],["feast","feest"],["risked","riskt"],["yourselves","yourselfs"],["graphic","grafic"],["slice","slise"],["strands","strandes"],["glasses","glases"],["solicit","solisit"],["inaugural","inaugral"],["prominently","prominantly"],["publicity","publisity"],["seventh","sevanth"],["standard","standerd"],["inviting","inviteing"],["collages","colages"],["greatness","greatnes"],["ovation","ovasion"],["selflessness","selflesness"],["patriotic","patreotic"],["ideals","ideels"],["witches","wiches"],["hedges","hedjes"],["meadows","medows"],["clambers","clamers"],["scrambles","scrambels"],["brambles","brambels"],["stringing","stringging"],["daisies","daisys"],["orbiting","orbitting"],["pressed","presed"],["abate","abait"],["azure","azzure"],["succession","sucession"],["igloos","igloes"],["airtight","airtit"],["outset","outsett"],["equivalent","equivelent"],["artificially","artifically"],["shopping","shoping"],["awaited","awaitted"],["rarely","rarly"],["faintly","faintley"],["enchanting","enchenting"],["ecstatic","exstatic"],["gymnast","gimnast"],["reserved","resurved"],["assigned","assined"],["monument","monumant"],["preserved","presurved"],["overall","overal"],["experiencing","experiancing"],["sprint","sprent"],["hopped","hoppid"],["ornaments","ornamants"],["shopkeepers","shopkeapers"],["guilty","gilty"],["salesman","sailsman"],["purchase","purchace"],["somewhere","somwhere"],["abbreviations","abreviations"],["sanctuary","sanctury"],["aspire","aspier"],["require","requier"],["exclusive","exclussive"],["borrow","borow"],["scores","scors"],["crosses","croses"],["schoolmaster","schoolmastar"],["scares","scairs"],["payment","paiment"],["demand","demmand"],["thirst","thurst"],["yearned","yerned"],["million","milion"],["poultry","poultary"],["satisfy","sattisfy"],["nourish","nurish"],["expense","expence"],["servant","servent"],["scraps","skraps"],["relish","rellish"],["thrive","thryve"],["duties","dutys"],["ration","rasion"],["dressed","dresed"],["fabric","fabrick"],["documents","documants"],["factor","facter"],["relations","relasions"],["goodness","goodnes"],["honesty","honisty"],["appreciable","apreciable"],["differently","diffrently"],["neatly","neatley"],["builds","bilds"],["imitation","immitation"],["cartoon","cartune"],["realistic","realistik"],["parodies","parodys"],["celebrating","celibrating"],["attain","atain"],["concentration","consentration"],["contemporary","contempory"],["mimicry","mimickry"],["typical","tipical"],["stiffness","stifness"],["allows","alows"],["mentally","mentaly"],["regarding","reguarding"],["instructor","instructer"],["upper","uper"],["facial","fasial"],["firmness","firmnes"],["button","buton"],["indicate","indecate"],["viewers","veiwers"],["folded","foalded"],["relaxed","relaxt"],["exhaling","exaling"],["empties","emptys"],["shortest","shortist"],["roaring","roring"],["abdomen","abdoman"],["apart","appart"],["instructing","instrukting"],["elbows","elbowes"],["perpendicular","perpendiculer"],["upwards","upwerds"],["enhances","enhanses"],["loosening","loosning"],["resemble","resembel"],["boosts","boostes"],["digestion","digesion"],["strain","strane"],["initial","inishial"],["straighten","streighten"],["cushion","cushon"],["demonstrator","demonstrater"],["assures","asures"],["gasped","gaspt"],["instant","instent"],["dashed","dasht"],["fleeing","fleing"],["commented","comented"],["ordinarily","ordinarly"],["emotionless","emotionles"],["astonishment","astonishmant"],["speedy","speady"],["rockets","rokets"],["submarine","submareen"],["deafening","defening"],["expelled","expeled"],["intensity","intensety"],["peering","pearing"],["blowholes","bloholes"],["exploding","exploading"],["bullets","bulets"],["sharpen","sharpin"],["clearer","cleerer"],["blackish","blakish"],["violently","violantly"],["considerable","considerible"],["marine","mareen"],["leader","leeder"],["observing","observeing"],["greeted","greated"],["dragged","draged"],["blocks","bloks"],["infernal","infernel"],["bearded","beerded"],["bounced","bounsed"],["vanished","vannished"],["weariness","wearyness"],["tirelessly","tirelesly"],["intense","intence"],["cable","cabel"],["reigned","riegned"],["blazing","blazeing"],["dazzled","dazled"],["protective","pertective"],["leaning","leening"],["railing","railling"],["brandishing","brandeshing"],["waterspouts","watterspouts"],["crashed","crasht"],["torrent","torent"],["toppling","topling"],["collision","colision"],["hurled","herled"],["upright","uprite"],["starboard","starbord"],["measurement","mesurement"],["kicked","kickt"],["suburb","suberb"],["defect","deffect"],["hooked","hookt"],["persevering","perservering"],["deterred","detered"],["enabled","enabeled"],["spellbound","spelbound"],["applaud","aplaud"],["comprehensive","comprehencive"],["initially","initialy"],["chemical","chemicle"],["temporarily","temporarly"],["blinded","blindded"],["aspirations","asperations"],["indispensable","indispensible"],["promoted","promotted"],["leading","leeding"],["exploring","exploreing"],["practical","practicle"]],"L3":[["accommodate","accomodate"],["accommodation","accomodation"],["acquaintance","aquaintance"],["acquire","aquire"],["acknowledge","acknowlege"],["aggressive","agressive"],["amateur","amature"],["apparently","apparantly"],["argument","arguement"],["awkward","akward"],["basically","basicly"],["bizarre","bizzare"],["calendar","calander"],["category","catagory"],["cemetery","cemetary"],["changeable","changable"],["committee","commitee"],["commitment","committment"],["conscience","concience"],["conscious","concious"],["criticism","critisism"],["deceive","decieve"],["definitely","definately"],["desperate","desparate"],["dilemma","dilemna"],["disappear","dissapear"],["disappoint","dissapoint"],["discipline","disipline"],["embarrass","embarass"],["embarrassment","embarassment"],["exaggerate","exagerate"],["exceed","excede"],["excellence","excellance"],["existence","existance"],["experience","experiance"],["familiar","familar"],["fiery","firey"],["forty","fourty"],["forward","foward"],["gauge","guage"],["grammar","grammer"],["grateful","greatful"],["guarantee","guarentee"],["height","heigth"],["hygiene","hygeine"],["ignorance","ignorence"],["independent","independant"],["interrupt","interupt"],["irrelevant","irrelevent"],["irresistible","irresistable"],["knowledge","knowlege"],["leisure","liesure"],["maintenance","maintainance"],["miniature","miniture"],["mischievous","mischievious"],["misspell","mispell"],["noticeable","noticable"],["occasionally","occasionaly"],["occurred","occured"],["occurrence","occurence"],["omission","ommission"],["omitted","omited"],["opportunity","oppurtunity"],["parliament","parliment"],["pastime","pasttime"],["perseverance","perseverence"],["playwright","playwrite"],["possession","posession"],["preferred","prefered"],["prejudice","predjudice"],["privilege","priviledge"],["questionnaire","questionaire"],["receipt","reciept"],["receive","recieve"],["recommend","reccommend"],["reference","refrence"],["referred","refered"],["relevant","relevent"],["religious","religous"],["restaurant","restaraunt"],["rhyme","ryhme"],["rhythm","rythm"],["ridiculous","rediculous"],["schedule","schedual"],["seize","sieze"],["separate","seperate"],["siege","seige"],["similar","similiar"],["sincerely","sincerly"],["threshold","threshhold"],["tongue","tounge"],["truly","truely"],["twelfth","twelth"],["until","untill"],["vacuum","vaccum"],["vicious","viscious"],["weird","wierd"],["wherever","whereever"],["business","buisness"],["colleague","collegue"],["coming","comming"],["competition","compitition"],["completely","completly"],["concede","conceed"],["congratulations","congradulations"],["convenient","convinient"],["curiosity","curiousity"],["cylinder","cylender"],["descend","decend"],["description","discription"],["despair","dispair"],["disastrous","disasterous"],["dissatisfied","disatisfied"],["eighth","eigth"],["eligible","eligable"],["emperor","emperer"],["equipped","equiped"],["finally","finaly"],["gorgeous","gorgous"],["guard","gaurd"],["guidance","guidence"],["hindrance","hindrence"],["illiterate","iliterate"],["incredible","incredable"],["innocent","inocent"],["interference","interferance"],["island","iland"],["jealous","jelous"],["length","lenght"],["loneliness","lonelyness"],["marriage","marrige"],["medicine","medecine"],["medieval","mideval"],["naturally","naturaly"],["nuisance","nusance"],["obedience","obediance"],["official","offical"],["opponent","oponent"],["oppression","opression"],["orchestra","orchastra"],["original","origional"],["outrageous","outragous"],["parallel","paralel"],["particularly","particulary"],["pavilion","pavillion"],["peaceful","peacefull"],["peculiar","peculier"],["perceive","percieve"],["performance","performence"],["permanent","permanant"],["persuade","pursuade"],["phenomenon","phenomenom"],["physician","physican"],["pleasant","plesant"],["possess","posess"],["practically","practicaly"],["preference","preferance"],["presence","presense"],["proceed","procede"],["professor","proffessor"],["psychology","psycology"],["pursue","persue"],["quarrel","quarel"],["queue","queu"],["rebellion","rebelion"],["recipe","recepie"],["remembrance","rememberance"],["resemblance","resemblence"],["reservoir","reservior"],["resistance","resistence"],["responsibility","responsability"],["sacrifice","sacrafice"],["sandwich","sandwhich"],["satellite","satelite"],["scenery","scenary"],["scissors","sissors"],["shepherd","sheperd"],["simultaneous","simultanious"],["souvenir","souvenier"],["spaghetti","spagetti"],["sponsor","sponser"],["stomach","stomache"],["subtle","sutle"],["succeed","suceed"],["sufficient","sufficent"],["suspicious","suspicous"],["syllable","sylable"],["symmetry","symetry"],["technique","tecnique"],["temperature","temprature"],["temporary","temporery"],["tendency","tendancy"],["thorough","thorogh"],["tragedy","tradgedy"],["transferred","transfered"],["unanimous","unanamous"],["unnecessary","unecessary"],["unforeseen","unforseen"],["usage","useage"],["valuable","valuble"],["vegetable","vegatable"],["vehicle","vehical"],["villain","villian"],["visible","visable"],["weight","wieght"],["withdrawal","withdrawl"],["yacht","yatch"],["yield","yeild"],["abundance","abundence"],["accessible","accessable"],["accidentally","accidentaly"],["accompany","acompany"],["accurate","acurate"],["already","allready"],["anonymous","anonymus"],["apology","appology"],["appreciate","apreciate"],["athlete","athelete"],["attendance","attendence"],["audible","audable"],["autumn","autum"],["balloon","baloon"],["beginner","beginer"],["biscuit","biscut"],["boundary","boundry"],["broccoli","brocolli"],["ceiling","cieling"],["coincidence","coincidance"],["committed","commited"],["comparative","comparitive"],["consistent","consistant"],["courteous","curteous"],["curriculum","curiculum"],["efficient","efficent"],["exhaust","exaust"],["explanation","explaination"],["extraordinary","extrordinary"],["extremely","extreamly"],["fierce","feirce"],["genuine","genuin"],["glimpse","glimse"],["guardian","gaurdian"],["handkerchief","hankerchief"],["hideous","hidious"],["imitate","immitate"],["influential","influencial"],["jeopardy","jeopordy"],["kindergarten","kindergarden"],["literature","litrature"],["manageable","managable"],["miscellaneous","miscellanious"],["mysterious","misterious"],["niece","neice"],["ninety","ninty"],["ninth","ninith"],["obstacle","obstacal"],["poisonous","poisenous"]]};
+  const LEVELS = [
+    { key: 'L1', name: 'Level 1', sub: 'Rookie', speed: 59, gap: 1.23, maxOn: 6 },
+    { key: 'L2', name: 'Level 2', sub: 'Explorer', speed: 73, gap: 1.12, maxOn: 7 },
+    { key: 'L3', name: 'Level 3', sub: 'Champion', speed: 84, gap: 1.04, maxOn: 7 },
+  ];   // website copy: ~35% faster falls and ~30% more words than the original game
+  const GOAL = 25;              // wrong words to blast to clear a level
+  const WRONG_SHARE = 0.65;     // about two in three falling words are misspelled
+  const LIVES = 5;
+
+  // ------------------------------------------------------------------ canvas and the planet
+  const cv = document.getElementById('game'), ctx = cv.getContext('2d');
+  let W = 0, H = 0, dpr = 1, bg = null, planet = { cx: 0, cy: 0, r: 0 };
+  const GROUND = () => H - Math.max(78, H * 0.11);          // top of the planet, under the turret
+  function horizon(x) { const dx = x - planet.cx; return planet.cy - Math.sqrt(Math.max(0, planet.r * planet.r - dx * dx)); }
+  const fontPx = () => Math.round(Math.max(18, Math.min(30, W / 30)));
+  function resize() {
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+    planet.r = Math.max(W * 1.25, 900); planet.cx = W / 2; planet.cy = GROUND() + planet.r;
+    paintBackdrop();
+  }
+  // the still parts of the sky, painted once per size: gradient, nebula clouds, faint stars
+  function paintBackdrop() {
+    bg = document.createElement('canvas'); bg.width = cv.width; bg.height = cv.height;
+    const b = bg.getContext('2d'); b.scale(dpr, dpr);
+    const g = b.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#04061a'); g.addColorStop(0.55, '#0d0a2e'); g.addColorStop(1, '#1c0e3c');
+    b.fillStyle = g; b.fillRect(0, 0, W, H);
+    b.globalCompositeOperation = 'lighter';
+    const cloud = (x, y, r, c) => { const rg = b.createRadialGradient(x, y, 0, x, y, r); rg.addColorStop(0, c); rg.addColorStop(1, 'rgba(0,0,0,0)'); b.fillStyle = rg; b.fillRect(x - r, y - r, r * 2, r * 2); };
+    cloud(W * 0.18, H * 0.25, Math.max(W, H) * 0.45, 'rgba(123,60,255,.20)');
+    cloud(W * 0.85, H * 0.18, Math.max(W, H) * 0.38, 'rgba(0,200,255,.13)');
+    cloud(W * 0.6, H * 0.6, Math.max(W, H) * 0.4, 'rgba(255,60,172,.09)');
+    cloud(W * 0.35, H * 0.75, Math.max(W, H) * 0.3, 'rgba(60,120,255,.10)');
+    b.globalCompositeOperation = 'source-over';
+    for (let i = 0; i < 260; i++) { b.fillStyle = `rgba(210,220,255,${Math.random() * 0.45})`; const s = Math.random() < 0.9 ? 1 : 1.6; b.fillRect(Math.random() * W, Math.random() * H, s, s); }
+  }
+  window.addEventListener('resize', resize); resize();
+  const stars = Array.from({ length: 90 }, () => ({ x: Math.random(), y: Math.random(), z: Math.random(), ph: Math.random() * 6 }));
+
+  // ------------------------------------------------------------------ sound (made on the fly, starts after the first tap)
+  let actx = null, soundOn = true;
+  function tone(freq, dur, type = 'square', vol = 0.06, slide = 0) {
+    if (!soundOn) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === 'suspended') actx.resume();   // iPhone and iPad start audio paused
+      const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime;
+      o.type = type; o.frequency.setValueAtTime(freq, t); if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(40, freq + slide), t + dur);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur);
+    } catch (e) { /* no audio available */ }
+  }
+  function noise(dur, vol = 0.08) {
+    if (!soundOn) return;
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      const n = Math.floor(actx.sampleRate * dur), buf = actx.createBuffer(1, n, actx.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n) ** 2;
+      const s = actx.createBufferSource(), g = actx.createGain(); g.gain.value = vol; s.buffer = buf; s.connect(g).connect(actx.destination); s.start();
+    } catch (e) { /* no audio available */ }
+  }
+  const SFX = {
+    zap: () => tone(1300, 0.12, 'square', 0.03, -1000),
+    boom: () => { noise(0.4, 0.09); tone(150, 0.3, 'sine', 0.09, -90); },
+    wrong: () => tone(170, 0.32, 'sawtooth', 0.05, -60),
+    land: () => tone(560, 0.14, 'sine', 0.04, 260),
+    level: () => [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.18, 'triangle', 0.06), i * 110)),
+  };
+
+  // ------------------------------------------------------------------ game state
+  const $ = (id) => document.getElementById(id);
+  let G = null;
+  function newGame(levelIndex) {
+    G = { lvl: levelIndex, startLvl: levelIndex, score: 0, lives: LIVES, hits: 0, totalHits: 0, streak: 0, words: [], fx: [], letters: [], rings: [], beams: [], toasts: [], t: 0, spawnT: 0.5, paused: false, over: false, banner: null, practice: new Map(), deck: [], shake: 0, hurt: 0, recoil: 0, aim: -Math.PI / 2 };
+    startLevel(levelIndex);
+    ['start', 'over', 'pauseCard'].forEach((id) => ($(id).hidden = true));
+    $('hud').hidden = false; drawHud();
+  }
+  function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  const poolFor = (i) => (i < LEVELS.length ? WORDS[LEVELS[i].key] : [].concat(WORDS.L1, WORDS.L2, WORDS.L3)) || [];
+  function startLevel(i) {
+    G.lvl = i; G.hits = 0;
+    G.deck = shuffle(poolFor(i).slice());
+    const C = lvlConf(); G.banner = { text: C.name, sub: C.sub, t: 2.4 };
+    G.spawnT = 2.4;
+  }
+  // after level 3 the game keeps going, a little faster each round, with words from every level
+  function lvlConf() {
+    const L = LEVELS[Math.min(G.lvl, LEVELS.length - 1)], extra = Math.max(0, G.lvl - (LEVELS.length - 1));
+    const fit = Math.max(3, Math.floor(W / 150) + 1);   // fewer words at once on a narrow phone screen
+    return { name: `Level ${G.lvl + 1}`, sub: G.lvl < LEVELS.length ? L.sub : 'Champion round', speed: L.speed + extra * 6, gap: Math.max(0.7, L.gap - extra * 0.1), maxOn: Math.min(fit, L.maxOn + Math.min(2, extra)) };
+  }
+  function measure(text) { ctx.font = `700 ${fontPx()}px Lexend, sans-serif`; return ctx.measureText(text).width; }
+  function spawn() {
+    const C = lvlConf();
+    if (!G.deck.length) G.deck = shuffle(poolFor(G.lvl).slice());
+    const [right, wrong] = G.deck.pop();
+    const isWrong = Math.random() < WRONG_SHARE;
+    const text = isWrong ? wrong : right;
+    const w = measure(text) + 40, h = fontPx() + 24;
+    let x = -1;
+    for (let k = 0; k < 20 && x < 0; k++) {   // find a lane that is free near the top
+      const tryX = 14 + Math.random() * Math.max(10, W - w - 28);
+      if (!G.words.some((o) => o.y < h * 3 && Math.abs(o.x + o.w / 2 - (tryX + w / 2)) < (o.w + w) / 2 + 14)) x = tryX;
+    }
+    if (x < 0) { G.deck.push([right, wrong]); return false; }   // no room yet (narrow screens): try again a moment later
+    const sp = C.speed * (0.85 + Math.random() * 0.3) * (H / 800 * 0.5 + 0.5);
+    G.words.push({ text, right, wrong, isWrong, x, y: -h - 50, w, h, vy: sp, wob: Math.random() * 6, state: 'fall', t: 0, hue: [200, 265, 300][Math.floor(Math.random() * 3)] });
+  }
+
+  // ------------------------------------------------------------------ scoring and effects
+  const points = (word) => 10 * word.length;
+  const mult = () => 1 + Math.min(4, Math.floor(G.streak / 5)) * 0.5;
+  function addPractice(right, wrong) { if (!G.practice.has(right)) G.practice.set(right, { right, wrong }); }
+  function toast(text, x, y, color, size = 18) { G.toasts.push({ text, x, y, color, size, t: 0 }); }
+  function burst(x, y, color, n = 30, speed = 300) {
+    for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = 60 + Math.random() * speed; G.fx.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.5 + Math.random() * 0.6, t: 0, color }); }
+  }
+  // the letters of a blasted word fly apart
+  function letterBurst(o, text) {
+    const fp = fontPx(); ctx.font = `700 ${fp}px Lexend, sans-serif`;
+    let x = o.x + o.w / 2 - ctx.measureText(text).width / 2;
+    for (const ch of text) {
+      const cw = ctx.measureText(ch).width, a = -Math.PI / 2 + (Math.random() - 0.5) * 2.4, s = 140 + Math.random() * 220;
+      G.letters.push({ ch, x: x + cw / 2, y: o.y + o.h / 2, vx: Math.cos(a) * s, vy: Math.sin(a) * s, rot: 0, vr: (Math.random() - 0.5) * 12, t: 0, size: fp });
+      x += cw;
+    }
+  }
+  function loseLife() {
+    G.lives -= 1; G.streak = 0; G.shake = 0.35; G.hurt = 0.6;
+    if (G.lives <= 0) endGame();
+  }
+  function gunPos() { return { x: W / 2, y: horizon(W / 2) - 6 }; }
+
+  function shoot(px, py) {
+    if (!G || G.paused || G.over) return;
+    let target = null;   // the word under the finger (with some padding so small screens are fair)
+    // the pod nearest the finger, so a tap between two close pods never hits the wrong one
+    let best = Infinity;
+    for (const o of G.words) {
+      if (o.state !== 'fall' || px < o.x - 12 || px > o.x + o.w + 12 || py < o.y - 12 || py > o.y + o.h + 12) continue;
+      const dx = Math.max(0, o.x - px, px - (o.x + o.w)), dy = Math.max(0, o.y - py, py - (o.y + o.h)), dist = dx * dx + dy * dy;
+      if (dist < best) { best = dist; target = o; }
+    }
+    const gun = gunPos();
+    G.aim = Math.atan2(py - gun.y, px - gun.x); G.recoil = 1;
+    SFX.zap();
+    const tip = { x: gun.x + Math.cos(G.aim) * 58, y: gun.y + Math.sin(G.aim) * 58 };
+    if (!target) { G.beams.push({ x0: tip.x, y0: tip.y, x1: px, y1: py, t: 0 }); return; }
+    const cx = target.x + target.w / 2, cy = target.y + target.h / 2;
+    G.beams.push({ x0: tip.x, y0: tip.y, x1: cx, y1: cy, t: 0 });
+    if (target.isWrong) {
+      const p = Math.round(points(target.right) * mult());
+      G.score += p; G.hits += 1; G.totalHits += 1; G.streak += 1;
+      target.state = 'fixed'; target.t = 0;
+      letterBurst(target, target.wrong);
+      burst(cx, cy, '#ffcf3f', 34); burst(cx, cy, '#ffffff', 12, 180);
+      G.rings.push({ x: cx, y: cy, t: 0, color: '255,207,63' });
+      SFX.boom();
+      toast(`+${p}`, cx, cy + target.h + 8, '#ffcf3f', 24);
+      if (G.hits >= GOAL) levelUp();
+    } else {
+      target.state = 'oops'; target.t = 0;
+      G.score = Math.max(0, G.score - points(target.right));
+      burst(cx, cy, '#ff5d73', 16, 200);
+      G.rings.push({ x: cx, y: cy, t: 0, color: '255,93,115' });
+      SFX.wrong();
+      toast(`"${target.right}" was spelled right!`, cx, cy - 30, '#ff8a9a', 18);
+      addPractice(target.right, null);
+      loseLife();
+    }
+    drawHud();
+  }
+  function levelUp() {
+    const bonus = 100 * (G.lvl + 1);
+    G.score += bonus; SFX.level();
+    G.words.forEach((o) => { if (o.state === 'fall') { o.state = 'fade'; o.t = 0; } });
+    startLevel(G.lvl + 1);
+    G.banner.sub += `  ·  bonus +${bonus}`;
+  }
+  function endGame() {
+    G.over = true;
+    let best = G.score;
+    try { best = Math.max(+localStorage.getItem('wordblaster-best') || 0, G.score); localStorage.setItem('wordblaster-best', String(best)); } catch (e) { /* storage blocked */ }
+    $('overTitle').textContent = G.lives <= 0 ? 'Game over' : 'Well played';
+    $('fScore').textContent = G.score; $('fBest').textContent = best; $('fHits').textContent = G.totalHits;
+    const list = [...G.practice.values()];
+    $('practice').innerHTML = list.length
+      ? `<h3>Words to practise</h3><ul>${list.slice(0, 24).map((p) => (p.wrong ? `<li><s>${p.wrong}</s> → <b>${p.right}</b></li>` : `<li><b>${p.right}</b> was right</li>`)).join('')}</ul>`
+      : '<h3>Perfect spelling! No words to practise.</h3>';
+    $('over').hidden = false; $('hud').hidden = true;
+  }
+
+  // ------------------------------------------------------------------ HUD and menus
+  const HEART = '<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.6-9.2C.9 8.4 3 4.5 6.7 4.5c2.1 0 3.6 1.2 4.3 2.6.7-1.4 2.2-2.6 4.3-2.6 3.7 0 5.8 3.9 4.3 7.3C19.5 16.4 12 21 12 21z"/></svg>';
+  function drawHud() {
+    const C = lvlConf();
+    $('score').textContent = G.score;
+    $('lvlName').textContent = C.name; $('lvlSub').textContent = `${C.sub} · ${G.hits}/${GOAL}`;
+    $('bar').style.width = `${Math.min(100, G.hits / GOAL * 100)}%`;
+    $('hearts').innerHTML = Array.from({ length: LIVES }, (_, i) => `<span class="${i < G.lives ? 'on' : 'off'}">${HEART}</span>`).join('');
+    const m = mult(); $('combo').textContent = m > 1 ? `×${m}` : ''; $('combo').hidden = m <= 1;
+  }
+  const SOUND_ON = '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 8a5 5 0 0 1 0 8"/></svg>', SOUND_OFF = '<svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M17 9l5 6M22 9l-5 6"/></svg>';
+  $('sound').innerHTML = SOUND_ON;
+  $('sound').onclick = () => { soundOn = !soundOn; $('sound').innerHTML = soundOn ? SOUND_ON : SOUND_OFF; $('sound').setAttribute('aria-pressed', String(soundOn)); $('sound').setAttribute('aria-label', soundOn ? 'Sound on' : 'Sound off'); };
+  const pause = (on) => { if (!G || G.over) return; G.paused = on; $('pauseCard').hidden = !on; };
+  $('pause').onclick = () => pause(true);
+  $('resume').onclick = () => pause(false);
+  $('quit').onclick = () => { $('pauseCard').hidden = true; G.paused = false; endGame(); };
+  $('again').onclick = () => newGame(G.startLvl);
+  $('menu').onclick = () => { $('over').hidden = true; $('start').hidden = false; G = null; };
+  document.addEventListener('visibilitychange', () => { if (document.hidden) pause(true); });
+  window.addEventListener('keydown', (e) => { if (e.key === 'Escape' || e.key === 'p') pause(!(G && G.paused)); });
+  $('levels').innerHTML = LEVELS.map((L, i) => `<button class="lvbtn" data-l="${i}"><span class="n">${i + 1}</span><span><b>${L.name}: ${L.sub}</b><small>${['Everyday words', 'Trickier words', 'The hardest spellings'][i]}${i === 0 ? ' · start here' : ''}</small></span></button>`).join('');
+  $('levels').querySelectorAll('button').forEach((b) => { b.onclick = () => newGame(+b.dataset.l); });
+  cv.addEventListener('pointerdown', (e) => { e.preventDefault(); shoot(e.clientX, e.clientY); });
+
+  // ------------------------------------------------------------------ drawing
+  function rr(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+  function drawSky(dt, t) {
+    ctx.drawImage(bg, 0, 0, W, H);
+    for (const s of stars) {
+      if (!G || !G.paused) s.y = (s.y + dt * (0.004 + s.z * 0.02)) % 1;
+      const tw = 0.45 + 0.55 * Math.sin(t * (1 + s.z * 2) + s.ph);
+      ctx.fillStyle = `rgba(230,236,255,${(0.3 + s.z * 0.6) * tw})`;
+      const sz = 1 + s.z * 1.8; ctx.fillRect(s.x * W, s.y * H, sz, sz);
+      if (s.z > 0.85) { ctx.fillRect(s.x * W - 3, s.y * H + sz / 2 - 0.5, sz + 6, 1); ctx.fillRect(s.x * W + sz / 2 - 0.5, s.y * H - 3, 1, sz + 6); }
+    }
+  }
+  function drawPlanet(t) {
+    const { cx, cy, r } = planet;
+    // atmosphere glow
+    const glow = ctx.createRadialGradient(cx, cy, r * 0.98, cx, cy, r + 70);
+    glow.addColorStop(0, 'rgba(73,242,255,.35)'); glow.addColorStop(1, 'rgba(73,242,255,0)');
+    ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(cx, cy, r + 70, 0, Math.PI * 2); ctx.fill();
+    // ground
+    const g = ctx.createLinearGradient(0, cy - r, 0, cy - r + 160);
+    g.addColorStop(0, '#1b4d7a'); g.addColorStop(0.25, '#16285a'); g.addColorStop(1, '#0a0f2c');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    // city lights and craters along the surface
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+    for (let i = 0; i < 40; i++) {
+      const x = (i / 40) * W + 12 * Math.sin(i * 3.1), y = horizon(x) + 18 + (i % 5) * 9;
+      ctx.fillStyle = `rgba(255,${200 + (i % 3) * 20},120,${0.35 + 0.25 * Math.sin(t * 2 + i)})`; ctx.fillRect(x, y, 2, 2);
+    }
+    ctx.fillStyle = 'rgba(0,0,0,.18)';
+    for (let i = 0; i < 7; i++) { const x = W * (0.08 + i * 0.14), y = horizon(x) + 40 + (i % 3) * 16; ctx.beginPath(); ctx.ellipse(x, y, 26 + (i % 2) * 14, 7, 0, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+    // the bright rim the words must not touch
+    ctx.strokeStyle = 'rgba(143,247,255,.9)'; ctx.lineWidth = 2.5; ctx.shadowColor = '#49f2ff'; ctx.shadowBlur = 16;
+    ctx.beginPath(); ctx.arc(cx, cy, r, Math.PI, Math.PI * 2); ctx.stroke(); ctx.shadowBlur = 0;
+  }
+  function drawWord(o, t) {
+    const fp = fontPx();
+    let text = o.text, alpha = 1, dy = 0, c1, c2, edge, ink = '#ffffff';
+    const near = o.state === 'fall' ? Math.max(0, 1 - (horizon(o.x + o.w / 2) - (o.y + o.h)) / 160) : 0;   // 1 when about to land
+    c1 = `hsl(${o.hue},70%,42%)`; c2 = `hsl(${o.hue},75%,20%)`; edge = `hsla(${o.hue},100%,75%,.9)`;
+    if (near > 0) edge = `rgba(255,${Math.round(180 - 80 * near)},80,${0.6 + 0.4 * Math.abs(Math.sin(t * 10))})`;
+    if (o.state === 'fixed') { text = o.right; c1 = '#2fbf7a'; c2 = '#0d5a3a'; edge = '#8affc4'; alpha = Math.max(0, 1 - Math.max(0, o.t - 1.0) / 0.5); dy = -o.t * 34; }
+    // a correct word that was shot stays GREEN (it is spelled right), cracked and shaking; only the edge flashes red for the mistake
+    if (o.state === 'oops') { c1 = '#2fbf7a'; c2 = '#0d5a3a'; edge = `rgba(255,93,115,${0.5 + 0.5 * Math.abs(Math.sin(o.t * 14))})`; alpha = Math.max(0, 1 - Math.max(0, o.t - 0.9) / 0.5); }
+    // a landed misspelling stays RED and keeps showing the misspelling (crossed out); the right spelling appears above in green
+    if (o.state === 'landed') { if (o.isWrong) { c1 = '#c23a52'; c2 = '#5a0f20'; edge = '#ff8a9a'; } else { c1 = '#2fbf7a'; c2 = '#0d5a3a'; edge = '#8affc4'; } alpha = Math.max(0, 1 - Math.max(0, o.t - 1.0) / 0.6); }
+    if (o.state === 'fade') alpha = Math.max(0, 1 - o.t / 0.5);
+    ctx.save(); ctx.globalAlpha = alpha;
+    ctx.font = `700 ${fp}px Lexend, sans-serif`;
+    const badge = o.state === 'fixed' ? o.h * 0.75 : 0;   // room for the tick on a fixed word
+    const w = Math.max(o.w, ctx.measureText(text).width + 40 + badge);
+    const shake = o.state === 'oops' ? Math.sin(o.t * 60) * 5 * Math.max(0, 1 - o.t) : Math.sin(t * 1.3 + o.wob) * 2.5;
+    const x = o.x - (w - o.w) / 2 + shake, y = o.y + dy;
+    // comet trail while falling
+    if (o.state === 'fall') {
+      const tl = 46 + 18 * Math.sin(t * 9 + o.wob), tg = ctx.createLinearGradient(0, y - tl, 0, y + 6);
+      tg.addColorStop(0, `hsla(${o.hue},100%,70%,0)`); tg.addColorStop(1, `hsla(${o.hue},100%,80%,.55)`);
+      ctx.fillStyle = tg; ctx.beginPath(); ctx.moveTo(x + w * 0.18, y + 6); ctx.quadraticCurveTo(x + w / 2, y - tl * 1.3, x + w * 0.82, y + 6); ctx.closePath(); ctx.fill();
+      for (let k = 0; k < 3; k++) { const sx = x + w * (0.25 + 0.25 * k) + Math.sin(t * 7 + k + o.wob) * 4, sy = y - ((t * 60 + k * 17 + o.wob * 10) % tl); ctx.fillStyle = `hsla(${o.hue},100%,85%,${0.6 * (1 - (y - sy) / tl)})`; ctx.fillRect(sx, sy, 2, 2); }
+    }
+    // pod
+    const pg = ctx.createLinearGradient(0, y, 0, y + o.h); pg.addColorStop(0, c1); pg.addColorStop(1, c2);
+    ctx.shadowColor = edge; ctx.shadowBlur = 18 + near * 14;
+    rr(x, y, w, o.h, o.h / 2); ctx.fillStyle = pg; ctx.fill();
+    ctx.shadowBlur = 0; ctx.lineWidth = 2; ctx.strokeStyle = edge; ctx.stroke();
+    rr(x + 6, y + 3, w - 12, o.h * 0.38, o.h * 0.2); ctx.fillStyle = 'rgba(255,255,255,.14)'; ctx.fill();   // glass shine
+    if (o.state === 'oops') {   // cracks
+      ctx.strokeStyle = 'rgba(255,220,225,.8)'; ctx.lineWidth = 1.6; ctx.beginPath();
+      ctx.moveTo(x + w * 0.3, y); ctx.lineTo(x + w * 0.36, y + o.h * 0.45); ctx.lineTo(x + w * 0.31, y + o.h * 0.7); ctx.lineTo(x + w * 0.38, y + o.h);
+      ctx.moveTo(x + w * 0.7, y + o.h); ctx.lineTo(x + w * 0.64, y + o.h * 0.5); ctx.lineTo(x + w * 0.71, y + o.h * 0.2); ctx.stroke();
+    }
+    if (o.state === 'fixed') {   // a tick badge on the left
+      ctx.fillStyle = '#eafff4'; ctx.beginPath(); ctx.arc(x + o.h / 2, y + o.h / 2, o.h * 0.3, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#0d8a55'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + o.h * 0.36, y + o.h * 0.52); ctx.lineTo(x + o.h * 0.47, y + o.h * 0.63); ctx.lineTo(x + o.h * 0.66, y + o.h * 0.4); ctx.stroke();
+    }
+    ctx.fillStyle = ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 4; ctx.shadowOffsetY = 1;
+    ctx.fillText(text, x + w / 2 + badge / 2, y + o.h / 2 + 1);
+    ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+    if (o.state === 'landed' && o.isWrong) {   // cross out the misspelling on the pod
+      const tw = ctx.measureText(text).width;
+      ctx.strokeStyle = '#ffe3e8'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + w / 2 - tw / 2 - 4, y + o.h / 2 + 1); ctx.lineTo(x + w / 2 + tw / 2 + 4, y + o.h / 2 + 1); ctx.stroke();
+    }
+    // the small line above the pod: the crossed-out misspelling (fixed), the right spelling (landed wrong), or "spelled right" (shot by mistake)
+    if (['fixed', 'landed', 'oops'].includes(o.state) && (o.state !== 'landed' || o.isWrong) && o.t < 1.6) {
+      const sfp = Math.round(fp * 0.62); ctx.font = `700 ${sfp}px Lexend, sans-serif`;
+      const wy = y - sfp * 0.95;
+      if (o.state === 'fixed') {
+        const lw = ctx.measureText(o.wrong).width;
+        ctx.fillStyle = '#ffb3be'; ctx.fillText(o.wrong, x + w / 2, wy);
+        ctx.strokeStyle = '#ff5d73'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(x + w / 2 - lw / 2 - 3, wy); ctx.lineTo(x + w / 2 + lw / 2 + 3, wy); ctx.stroke();
+      } else if (o.state === 'landed') {
+        ctx.fillStyle = '#8affc4'; ctx.fillText(`✓ ${o.right}`, x + w / 2, wy);
+      } else {
+        ctx.fillStyle = '#8affc4'; ctx.fillText('✓ spelled right', x + w / 2, wy);
+      }
+    }
+    ctx.restore();
+  }
+  function drawTurret(dt) {
+    const { x, y } = gunPos();
+    const a = G ? G.aim : -Math.PI / 2 + Math.sin(performance.now() / 900) * 0.4;
+    const rec = G ? G.recoil : 0;
+    ctx.save(); ctx.translate(x, y);
+    // barrel
+    ctx.save(); ctx.rotate(a + Math.PI / 2); ctx.translate(0, rec * 8);
+    const bg2 = ctx.createLinearGradient(-9, 0, 9, 0); bg2.addColorStop(0, '#5b6ab8'); bg2.addColorStop(0.5, '#dfe6ff'); bg2.addColorStop(1, '#5b6ab8');
+    ctx.fillStyle = bg2; rr(-9, -60, 18, 52, 7); ctx.fill();
+    ctx.fillStyle = '#49f2ff'; ctx.shadowColor = '#49f2ff'; ctx.shadowBlur = 14; rr(-11, -64, 22, 10, 4); ctx.fill(); ctx.shadowBlur = 0;
+    if (rec > 0.4) { ctx.fillStyle = `rgba(200,255,255,${rec})`; ctx.beginPath(); ctx.arc(0, -70, 14 * rec, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+    // dome
+    const dg = ctx.createLinearGradient(0, -36, 0, 10); dg.addColorStop(0, '#9fb0ff'); dg.addColorStop(1, '#2a3270');
+    ctx.fillStyle = dg; ctx.beginPath(); ctx.ellipse(0, 4, 44, 36, 0, Math.PI, 0); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(200,215,255,.7)'; ctx.lineWidth = 2; ctx.stroke();
+    for (let i = 0; i < 5; i++) { const ang = Math.PI + (i + 0.5) / 5 * Math.PI; ctx.fillStyle = `rgba(73,242,255,${0.5 + 0.5 * Math.sin(performance.now() / 300 + i)})`; ctx.beginPath(); ctx.arc(Math.cos(ang) * 32, 4 + Math.sin(ang) * 25, 2.6, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+  }
+
+  // a few words drifting behind the start menu
+  const DEMO = ['planet', 'beutiful', 'library', 'freind', 'rhythm', 'necesary', 'garden', 'wether'];
+  const demo = DEMO.map((text, i) => ({ text, x: 0, y: -60 - i * 120, w: 0, h: 0, vy: 30 + (i % 3) * 8, wob: i, state: 'fall', t: 0, hue: [200, 265, 300][i % 3], seed: Math.random() }));
+
+  function frame(now) {
+    requestAnimationFrame(frame);
+    const dt = Math.min(0.05, (now - (frame.last || now)) / 1000); frame.last = now;
+    const t = now / 1000;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawSky(dt, t);
+    if (G && G.shake > 0) { const k = G.shake * 18; ctx.translate((Math.random() - 0.5) * k, (Math.random() - 0.5) * k); }
+
+    if (!G) {   // menu: demo words drift down behind the card
+      for (const o of demo) {
+        if (!o.w) { o.w = measure(o.text) + 40; o.h = fontPx() + 24; o.x = o.seed * (W - o.w); }
+        o.y += o.vy * dt; if (o.y > H) { o.y = -80; o.seed = Math.random(); o.x = o.seed * (W - o.w); }
+        drawWord(o, t);
+      }
+      drawPlanet(t); drawTurret(dt);
+      return;
+    }
+    const run = !G.paused && !G.over;
+    if (run) {
+      G.t += dt; G.shake = Math.max(0, G.shake - dt); G.hurt = Math.max(0, G.hurt - dt); G.recoil = Math.max(0, G.recoil - dt * 6);
+      const C = lvlConf();
+      if (G.banner) { G.banner.t -= dt; if (G.banner.t <= 0) G.banner = null; }
+      G.spawnT -= dt;
+      const falling = G.words.filter((o) => o.state === 'fall').length;
+      if (G.spawnT <= 0 && !G.banner && falling < C.maxOn) G.spawnT = spawn() === false ? 0.25 : C.gap * (0.8 + Math.random() * 0.4);
+      for (const o of G.words) {
+        o.t += dt;
+        if (o.state !== 'fall') continue;
+        o.y += o.vy * dt;
+        const land = horizon(o.x + o.w / 2);
+        if (o.y + o.h >= land) {
+          o.state = 'landed'; o.t = 0; o.y = land - o.h;
+          const cx = o.x + o.w / 2;
+          if (o.isWrong) { addPractice(o.right, o.wrong); SFX.wrong(); burst(cx, land, '#ff5d73', 20, 220); G.rings.push({ x: cx, y: land, t: 0, color: '255,93,115' }); loseLife(); toast('A wrong one landed!', cx, land - o.h - 40, '#ff8a9a', 18); }
+          else { const p = Math.round(o.right.length * 2); G.score += p; SFX.land(); G.rings.push({ x: cx, y: land, t: 0, color: '79,227,154' }); toast(`+${p} safe`, cx, land - o.h - 16, '#4fe39a', 16); }
+          drawHud();
+        }
+      }
+      G.words = G.words.filter((o) => !(o.state !== 'fall' && o.t > 1.6));
+      for (const p of G.fx) { p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 240 * dt; p.vx *= 0.985; }
+      G.fx = G.fx.filter((p) => p.t < p.life);
+      for (const l of G.letters) { l.t += dt; l.x += l.vx * dt; l.y += l.vy * dt; l.vy += 420 * dt; l.rot += l.vr * dt; }
+      G.letters = G.letters.filter((l) => l.t < 1.1);
+      G.rings.forEach((r) => (r.t += dt)); G.rings = G.rings.filter((r) => r.t < 0.6);
+      G.beams.forEach((b) => (b.t += dt)); G.beams = G.beams.filter((b) => b.t < 0.2);
+      G.toasts.forEach((x) => (x.t += dt)); G.toasts = G.toasts.filter((x) => x.t < 1.3);
+    }
+    for (const o of G.words) drawWord(o, t);
+    drawPlanet(t);
+    // laser: wide glow, bright beam, white core
+    for (const b of G.beams) {
+      const a = 1 - b.t / 0.2;
+      for (const [w, c] of [[16 * a + 2, `rgba(73,242,255,${0.25 * a})`], [6 * a + 1, `rgba(120,250,255,${0.8 * a})`], [2, `rgba(255,255,255,${a})`]]) {
+        ctx.strokeStyle = c; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(b.x0, b.y0); ctx.lineTo(b.x1, b.y1); ctx.stroke();
+      }
+      ctx.fillStyle = `rgba(200,255,255,${a})`; ctx.beginPath(); ctx.arc(b.x1, b.y1, 10 * a + 2, 0, Math.PI * 2); ctx.fill();
+    }
+    for (const r of G.rings) { const k = r.t / 0.6; ctx.strokeStyle = `rgba(${r.color},${1 - k})`; ctx.lineWidth = 4 * (1 - k) + 1; ctx.beginPath(); ctx.arc(r.x, r.y, 12 + k * 90, 0, Math.PI * 2); ctx.stroke(); }
+    // sparks drawn as short streaks along their motion
+    ctx.lineCap = 'round';
+    for (const p of G.fx) { const a = Math.max(0, 1 - p.t / p.life); ctx.strokeStyle = p.color; ctx.globalAlpha = a; ctx.lineWidth = 2.4; ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * 0.03, p.y - p.vy * 0.03); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+    for (const l of G.letters) {
+      ctx.save(); ctx.globalAlpha = Math.max(0, 1 - l.t / 1.1); ctx.translate(l.x, l.y); ctx.rotate(l.rot);
+      ctx.font = `800 ${l.size}px Lexend, sans-serif`; ctx.fillStyle = '#ffb3be'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(l.ch, 0, 0); ctx.restore();
+    }
+    for (const x of G.toasts) {
+      ctx.globalAlpha = Math.max(0, 1 - x.t / 1.3); ctx.fillStyle = x.color; ctx.font = `${x.size > 20 ? '' : '700 '}${x.size}px ${x.size > 20 ? 'Bungee' : 'Lexend'}, sans-serif`; ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6; ctx.fillText(x.text, Math.max(110, Math.min(W - 110, x.x)), x.y - x.t * 40); ctx.shadowBlur = 0;
+    }
+    ctx.globalAlpha = 1;
+    drawTurret(dt);
+    // red edge flash when a life is lost
+    if (G.hurt > 0) {
+      const v = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.35, W / 2, H / 2, Math.max(W, H) * 0.75);
+      v.addColorStop(0, 'rgba(255,40,70,0)'); v.addColorStop(1, `rgba(255,40,70,${0.55 * G.hurt / 0.6})`);
+      ctx.fillStyle = v; ctx.fillRect(-20, -20, W + 40, H + 40);
+    }
+    if (G.banner) {
+      const b = G.banner, a = Math.max(0, Math.min(1, b.t / 0.4, (2.4 - b.t) / 0.3)), s = 1 + 0.08 * Math.max(0, (b.t - 2.0) / 0.4);
+      ctx.save(); ctx.globalAlpha = a; ctx.translate(W / 2, H * 0.4); ctx.scale(s, s); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.shadowColor = '#49f2ff'; ctx.shadowBlur = 30; ctx.fillStyle = '#ffffff'; ctx.font = `${Math.round(Math.min(78, W / 8))}px Bungee, sans-serif`; ctx.fillText(b.text, 0, 0);
+      ctx.shadowBlur = 0; ctx.fillStyle = '#8ff7ff'; ctx.font = `600 ${Math.round(Math.min(22, W / 24))}px Lexend, sans-serif`; ctx.fillText(b.sub, 0, Math.min(60, W / 11));
+      ctx.restore();
+    }
+  }
+  requestAnimationFrame(frame);
+  window.__wb = { get G() { return G; }, newGame, WORDS };
+})();
+</script>
+<a class="zq-back" href="../../tools.html" aria-label="Back to all tools">&#8592; Tools</a>
+</body>
+</html>
